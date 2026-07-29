@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: mynilam-django-backend
+    env: python
+    rootDir: apps/django-backend
+    buildCommand: ./build.sh
+    startCommand: gunicorn Project.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: DEBUG
+        value: "False"
