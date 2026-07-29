@@ -4,6 +4,17 @@ export type PropertyType = 'house' | 'flat' | 'plot' | 'commercial' | 'hostel' |
 export type ListingType = 'sale' | 'rent' | 'roommate';
 export type PropertyStatus = 'draft' | 'pending' | 'published' | 'rejected';
 
+export type HostelPhotoCategory = 'COVER' | 'ENTRANCE' | 'ROOM' | 'BATHROOM' | 'DINING' | 'COMMON_AREA';
+
+export interface HostelPhoto {
+  id: number | string
+  hostelId: number | string
+  imageUrl: string
+  category: HostelPhotoCategory
+  isCover: boolean
+  createdAt: string
+}
+
 export interface Property {
   id: string
   title: string
@@ -21,9 +32,14 @@ export interface Property {
   latitude: number | null
   longitude: number | null
   images: string[]
+  cover_image?: string | null
+  hostel_photos?: HostelPhoto[]
   videos?: string[] | null
   status: PropertyStatus
   is_published: boolean
+  location_unlocked?: boolean
+  landmark?: string | null
+  street_address?: string | null
   user_id: string
   user?: User
   total_rooms?: number | null
@@ -43,9 +59,27 @@ export interface Property {
   wifi_available?: boolean | null
   ac_available?: boolean | null
   laundry_available?: boolean | null
+  starting_price?: number | null
+  available_sharing_types?: string[] | null
+  room_options?: RoomOption[] | null
   created_at: string
   updated_at: string
 }
+
+export interface RoomOption {
+  id: string
+  sharing_type: string
+  sharing_label: string
+  is_ac: boolean
+  has_attached_bathroom: boolean
+  monthly_rate: number
+  security_deposit?: number | null
+  total_beds: number
+  vacant_beds: number
+  food_included?: boolean | null
+  status: 'available' | 'last_beds' | 'fully_booked'
+}
+
 
 export interface CreatePropertyInput {
   title: string

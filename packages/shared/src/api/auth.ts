@@ -127,7 +127,7 @@ class AuthApi {
     }
 
     // Real API call
-    const response = await apiClient.get('/auth/me')
+    const response = await apiClient.get('/auth/login/')
     const user = response.data.data
     return user ? { ...user, role: user.role?.toLowerCase() } : user
   }
@@ -154,6 +154,59 @@ class AuthApi {
     const response = await apiClient.patch('/auth/profile/', data)
     const user = response.data.data
     return user ? { ...user, role: user.role?.toLowerCase() } : user
+  }
+
+  // ---------------------------------------------------------------------------
+  // USER MANAGEMENT (Super Admin Only)
+  // ---------------------------------------------------------------------------
+  async getUsers(role?: 'employee' | 'normal'): Promise<User[]> {
+    if (USE_MOCK) {
+      await delay(300)
+      if (role === 'employee') return mockUsers.filter(u => u.role === 'employee')
+      if (role === 'normal') return mockUsers.filter(u => u.role === 'normal' || u.role === 'guest')
+      return mockUsers
+    }
+    
+    const params = role ? { role } : {}
+    const response = await apiClient.get('/auth/users/', { params })
+    return response.data.data
+  }
+
+  async addEmployee(email: string, fullName: string): Promise<User & { default_password?: string }> {
+    if (USE_MOCK) {
+      await delay(300)
+      const existing = mockUsers.find(u => u.email === email)
+      if (existing) throw new Error('User with this email already exists')
+      
+      const newEmp: User = {
+        id: 'emp_' + String(Date.now()),
+        email,
+        full_name: fullName,
+        role: 'employee',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      mockUsers.push(newEmp)
+      saveMockUsersToStorage()
+      return { ...newEmp, default_password: 'Rentel@123' }
+    }
+    
+    const response = await apiClient.post('/auth/users/employee/', { email, full_name: fullName })
+    return response.data.data
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    if (USE_MOCK) {
+      await delay(300)
+      const index = mockUsers.findIndex(u => String(u.id) === userId)
+      if (index !== -1) {
+        mockUsers.splice(index, 1)
+        saveMockUsersToStorage()
+      }
+      return
+    }
+    
+    await apiClient.delete(`/auth/users/${userId}/`)
   }
 }
 

@@ -1,6 +1,6 @@
 export * from './types/user'
 export * from './types/property'
 export * from './types/transaction'
-export * from './types/message'
+export * from './types/communications'
 export * from './types/api'
 export * from './api'

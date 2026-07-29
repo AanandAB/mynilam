@@ -21,6 +21,8 @@ export interface PropertyFilters {
     wifi_available?: boolean
     ac_available?: boolean
     laundry_available?: boolean
+    user_id?: string
+    is_published?: boolean
 }
 
 class PropertiesApi {
@@ -123,6 +125,23 @@ class PropertiesApi {
 
         // Real API call
         const response = await apiClient.get(`/properties/${id}/`)
+        return response.data.data
+    }
+
+    async getPropertyLocation(id: string): Promise<{ latitude: number | null, longitude: number | null, address_line_1: string, google_maps_url: string | null }> {
+        if (USE_MOCK) {
+            await delay(300)
+            const property = mockProperties.find(p => p.id === id)
+            if (!property) throw new Error('Property not found')
+            return {
+                latitude: property.latitude,
+                longitude: property.longitude,
+                address_line_1: property.address,
+                google_maps_url: `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`
+            }
+        }
+        
+        const response = await apiClient.get(`/properties/${id}/location/`)
         return response.data.data
     }
 
@@ -284,6 +303,100 @@ class PropertiesApi {
             params: { limit }
         })
         return response.data.data
+    }
+
+    // ---------------------------------------------------------------------------
+    // DASHBOARD & EMPLOYEE METHODS
+    // ---------------------------------------------------------------------------
+    async getUserProperties(): Promise<Property[]> {
+        if (USE_MOCK) {
+            await delay(300)
+            const email = typeof window !== 'undefined' ? localStorage.getItem('currentUserEmail') : null
+            return mockProperties.filter(p => p.user?.email === email)
+        }
+        
+        const response = await apiClient.get('/properties/', { params: { user_id: 'me', page_size: 100 } })
+        return response.data.data
+    }
+
+    async getUnverifiedProperties(): Promise<Property[]> {
+        if (USE_MOCK) {
+            await delay(300)
+            return mockProperties.filter(p => !p.is_published)
+        }
+        
+        const response = await apiClient.get('/properties/', { params: { is_published: 'false', page_size: 100 } })
+        return response.data.data
+    }
+
+    async verifyProperty(id: string): Promise<Property> {
+        if (USE_MOCK) {
+            await delay(500)
+            const index = mockProperties.findIndex(p => p.id === id)
+            if (index === -1) throw new Error('Property not found')
+            
+            const updated = { ...mockProperties[index], is_published: true, status: 'published' as const }
+            mockProperties[index] = updated as Property
+            saveMockPropertiesToStorage()
+            return updated as Property
+        }
+        
+        const response = await apiClient.patch(`/properties/${id}/verify/`)
+        return response.data.data
+    }
+
+    // ---------------------------------------------------------------------------
+    // HOSTEL CONFIG METHODS
+    // ---------------------------------------------------------------------------
+    async getHostelConfig(propertyId: string): Promise<any> {
+        if (USE_MOCK) {
+            await delay(300)
+            const saved = typeof window !== 'undefined' ? localStorage.getItem('mock_hostel_admin_config') : null
+            return saved ? JSON.parse(saved) : null
+        }
+        
+        const response = await apiClient.get(`/properties/${propertyId}/hostel-config/`)
+        return response.data.data
+    }
+
+    async updateHostelConfig(propertyId: string, data: any): Promise<any> {
+        if (USE_MOCK) {
+            await delay(500)
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('mock_hostel_admin_config', JSON.stringify(data))
+            }
+            return data
+        }
+        
+        const response = await apiClient.put(`/properties/${propertyId}/hostel-config/update/`, data)
+        return response.data.data
+    }
+
+    async getHostelList(): Promise<any[]> {
+        if (USE_MOCK) {
+            await delay(300)
+            return [] // Mock empty list or some dummy data
+        }
+        
+        const response = await apiClient.get('/properties/hostels/')
+        return response.data.data
+    }
+
+    async createHostelAdmin(data: { hostel_name: string; email: string; first_name: string; last_name: string }): Promise<any> {
+        if (USE_MOCK) {
+            await delay(500)
+            return {
+                message: 'Hostel and admin created successfully.',
+                hostel_id: 999,
+                admin_credentials: {
+                    email: data.email,
+                    password: 'MockPassword123!'
+                }
+            }
+        }
+        
+        const response = await apiClient.post(`/properties/hostels/`, data)
+        return response.data
     }
 }
 

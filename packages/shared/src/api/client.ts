@@ -21,29 +21,20 @@ const getExpoPublicApiUrl = (): string | undefined => {
   }
 };
 
-let rawUrl = getNextPublicApiUrl() || getExpoPublicApiUrl() || 'http://localhost:8000/api/v1';
-if (rawUrl && !rawUrl.endsWith('/api/v1') && !rawUrl.endsWith('/api/v1/')) {
-  rawUrl = rawUrl.replace(/\/$/, '') + '/api/v1';
-}
-apiBaseUrl = rawUrl;
+apiBaseUrl = getNextPublicApiUrl() || getExpoPublicApiUrl() || 'http://localhost:8000/api';
 
 export const USE_MOCK = (() => {
   try {
-    if (typeof process !== 'undefined' && process.env) {
-      if (process.env.NODE_ENV === 'production') return false;
-      if (process.env.NEXT_PUBLIC_USE_MOCK === 'false') return false;
-      if (process.env.EXPO_PUBLIC_USE_MOCK === 'false') return false;
-      if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') return true;
-      if (process.env.EXPO_PUBLIC_USE_MOCK === 'true') return true;
-    }
+    // @ts-ignore
+    const nextMock = process.env.NEXT_PUBLIC_USE_MOCK;
+    if (nextMock === 'true') return true;
   } catch {}
-  // Default to true in development, but false in production
   try {
-    if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
-      return true;
-    }
+    // @ts-ignore
+    const expoMock = process.env.EXPO_PUBLIC_USE_MOCK;
+    if (expoMock === 'true') return true;
   } catch {}
-  return false;
+  return false; // Default to false (real API)
 })();
 
 export class ApiClient {
@@ -114,9 +105,6 @@ export class ApiClient {
         return this.client(originalRequest)
       } catch (refreshError) {
         this.clearTokens()
-        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-          window.location.href = '/login'
-        }
         return Promise.reject(refreshError)
       }
     }

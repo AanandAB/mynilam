@@ -24,7 +24,8 @@ export function useLoginPageModel() {
   }
 
   const handleContinueAsGuest = () => {
-    login({ email: 'guest@rentel.com', password: 'password' })
+    // A guest is just an unauthenticated user, so simply navigate to the homepage.
+    window.location.href = '/'
   }
 
   return {

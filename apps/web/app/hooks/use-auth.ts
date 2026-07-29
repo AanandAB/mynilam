@@ -1,14 +1,21 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi, type User } from '@repo/shared'
 
 export function useAuth() {
   const queryClient = useQueryClient()
+  const [hasToken, setHasToken] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    setHasToken(!!token)
+  }, [])
 
   const {
     data: user,
-    isLoading,
+    isLoading: isQueryLoading,
     error,
     refetch,
   } = useQuery({
@@ -16,7 +23,10 @@ export function useAuth() {
     queryFn: authApi.getCurrentUser,
     retry: false,
     staleTime: 5 * 60 * 1000,
+    enabled: hasToken === true,
   })
+
+  const isLoading = hasToken === null || (hasToken === true && isQueryLoading)
 
   const loginMutation = useMutation({
     mutationFn: authApi.login,

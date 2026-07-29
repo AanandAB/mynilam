@@ -1,4 +1,11 @@
 export * from './client'
 export * from './auth'
 export * from './properties'
+export * from './communications'
+export * from './visits'
+export * from './hostel-config'
+export * from './hostel-photos'
+export * from './hostel-rooms'
 export * from './mock-data'
+
+export * from './geo'

@@ -2,10 +2,9 @@
   "name": "@repo/web",
   "version": "1.0.0",
   "scripts": {
-    "dev": "npx dotenv -e .env.dev -- next dev",
-    "test": "npx dotenv -e .env.test -- next dev",
-    "start": "npx dotenv -e .env.prod -- next start",
+    "dev": "next dev",
     "build": "next build",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
@@ -29,7 +28,6 @@
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "autoprefixer": "^10.4.16",
-    "dotenv-cli": "^11.0.0",
     "eslint": "^8.55.0",
     "eslint-config-next": "14.0.3",
     "postcss": "^8.4.32",

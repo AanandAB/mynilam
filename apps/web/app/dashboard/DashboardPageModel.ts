@@ -10,7 +10,8 @@ export function useDashboardPageModel() {
   const { user, isLoading: isAuthLoading, logout } = useAuth()
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'my-ads' | 'verify-users' | 'employees' | 'users-list' | 'hostel-manage'>('my-ads')
+  const [activeTab, setActiveTab] = useState<'my-ads' | 'verify-users' | 'employees' | 'users-list' | 'hostel-manage' | 'hostel-photos' | 'favorites' | 'inquiries' | 'messages' | 'visits' | 'hostel-requests'>('my-ads')
+
 
   useEffect(() => {
     if (user && user.role === 'hostel_admin') {
@@ -18,117 +19,137 @@ export function useDashboardPageModel() {
     }
   }, [user])
 
-  // Employee management state
-  const [newEmployeeEmail, setNewEmployeeEmail] = useState('')
-  const [newEmployeeName, setNewEmployeeName] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
-
-  // State to force re-renders when modifying in-memory mock lists
-  const [usersList, setUsersList] = useState<User[]>([])
-  const [propertiesList, setPropertiesList] = useState<Property[]>([])
-
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.push('/login')
     }
   }, [user, isAuthLoading, router])
 
-  // Sync initial list values
-  useEffect(() => {
-    setUsersList([...mockUsers])
-    setPropertiesList([...mockProperties])
-  }, [])
+  // Employee management state
+  const [newEmployeeEmail, setNewEmployeeEmail] = useState('')
+  const [newEmployeeName, setNewEmployeeName] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  // Filter properties based on user role
-  const getFilteredProperties = () => {
-    if (!user) return []
-    if (user.role === 'hostel_admin') return []
-    if (user.role === 'super_admin' || user.role === 'employee' || user.role === 'guest') {
-      return propertiesList // Admins, employees, guests can view all properties
-    }
-    // Normal users only see their own properties
-    return propertiesList.filter(p => p.user_id === user.id || p.user?.email === user.email)
-  }
+  // Queries
+  const { data: userProperties = [] } = useQuery({
+    queryKey: ['properties', 'me'],
+    queryFn: () => propertiesApi.getUserProperties(),
+    enabled: !!user,
+  })
 
-  const userProperties = getFilteredProperties()
+  const { data: unverifiedProperties = [] } = useQuery({
+    queryKey: ['properties', 'unverified'],
+    queryFn: () => propertiesApi.getUnverifiedProperties(),
+    enabled: !!user && (user.role === 'employee' || user.role === 'super_admin'),
+  })
 
-  // Add Employee (mock function modifying the in-memory array)
+  const { data: usersList = [] } = useQuery({
+    queryKey: ['users', 'all'],
+    queryFn: () => authApi.getUsers(),
+    enabled: !!user && user.role === 'super_admin',
+  })
+
+  const { data: hostelList = [], refetch: refetchHostelList } = useQuery({
+    queryKey: ['hostels', 'all'],
+    queryFn: () => propertiesApi.getHostelList(),
+    enabled: !!user && user.role === 'super_admin',
+  })
+
+  const hostelPropertyId = user?.role === 'hostel_admin' && userProperties.length > 0 ? userProperties[0].id : null
+
+  const { data: hostelConfigData = null, isLoading: isHostelConfigLoading } = useQuery({
+    queryKey: ['hostelConfig', hostelPropertyId],
+    queryFn: () => propertiesApi.getHostelConfig(hostelPropertyId!),
+    enabled: !!hostelPropertyId,
+  })
+
+  // Mutations
+  const verifyMutation = useMutation({
+    mutationFn: (id: string) => propertiesApi.verifyProperty(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] })
+      setSuccessMessage('Property ad successfully verified and published!')
+      setErrorMessage('')
+    },
+    onError: () => setErrorMessage('Failed to verify property.')
+  })
+
+  const updateHostelConfigMutation = useMutation({
+    mutationFn: (data: any) => propertiesApi.updateHostelConfig(hostelPropertyId!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hostelConfig', hostelPropertyId] })
+      setSuccessMessage('Hostel configuration updated successfully!')
+      setErrorMessage('')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    },
+    onError: () => setErrorMessage('Failed to update hostel configuration.')
+  })
+
+  const deletePropertyMutation = useMutation({
+    mutationFn: (id: string) => propertiesApi.deleteProperty(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] })
+      setSuccessMessage('Ad listing deleted successfully.')
+      setErrorMessage('')
+    },
+    onError: () => setErrorMessage('Failed to delete property.')
+  })
+
+  const addEmployeeMutation = useMutation({
+    mutationFn: ({ email, name }: { email: string; name: string }) => authApi.addEmployee(email, name),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setNewEmployeeEmail('')
+      setNewEmployeeName('')
+      setSuccessMessage(`Employee added successfully! Default password: ${data.default_password || 'Rentel@123'}`)
+      setErrorMessage('')
+    },
+    onError: (err: any) => setErrorMessage(err.message || 'Failed to add employee.')
+  })
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (id: string) => authApi.deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setSuccessMessage('User account deleted.')
+      setErrorMessage('')
+    },
+    onError: () => setErrorMessage('Failed to delete user.')
+  })
+
   const handleAddEmployee = (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMessage('')
-    setSuccessMessage('')
-
     if (!newEmployeeEmail || !newEmployeeName) {
       setErrorMessage('Please fill in all fields.')
       return
     }
+    addEmployeeMutation.mutate({ email: newEmployeeEmail, name: newEmployeeName })
+  }
 
-    const exists = mockUsers.some(u => u.email === newEmployeeEmail)
-    if (exists) {
-      setErrorMessage('A user or employee with this email already exists.')
+  const handleDeleteUser = (userId: string) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+        deleteUserMutation.mutate(userId)
+    }
+  }
+
+  const handleDeleteProperty = (propertyId: string) => {
+    if (window.confirm("Are you sure you want to delete this listing?")) {
+        deletePropertyMutation.mutate(propertyId)
+    }
+  }
+
+  const handleVerifyProperty = (propertyId: string) => {
+    verifyMutation.mutate(propertyId)
+  }
+
+  const handleSaveHostelConfig = (configData: any) => {
+    if (!hostelPropertyId) {
+      setErrorMessage('No property found to update. Please create a property first.')
       return
     }
-
-    const newEmp: User = {
-      id: 'emp_' + String(Date.now()),
-      email: newEmployeeEmail,
-      full_name: newEmployeeName,
-      role: 'employee',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-
-    mockUsers.push(newEmp)
-    saveMockUsersToStorage()
-    setUsersList([...mockUsers])
-    setNewEmployeeEmail('')
-    setNewEmployeeName('')
-    setSuccessMessage('Employee added successfully!')
+    updateHostelConfigMutation.mutate(configData)
   }
-
-  // Delete Employee/User
-  const handleDeleteUser = (userId: string) => {
-    const index = mockUsers.findIndex(u => u.id === userId)
-    if (index !== -1) {
-      mockUsers.splice(index, 1)
-      saveMockUsersToStorage()
-      setUsersList([...mockUsers])
-      setSuccessMessage('User account deleted.')
-    }
-  }
-
-  // Delete Ad (listings)
-  const handleDeleteProperty = async (propertyId: string) => {
-    try {
-      await propertiesApi.deleteProperty(propertyId)
-      // Update local state
-      const updatedList = propertiesList.filter(p => p.id !== propertyId)
-      setPropertiesList(updatedList)
-      // Sync it back to mockProperties so it stays deleted across pages
-      const mockIndex = mockProperties.findIndex(p => p.id === propertyId)
-      if (mockIndex !== -1) {
-        mockProperties.splice(mockIndex, 1)
-      }
-      setSuccessMessage('Ad listing deleted successfully.')
-    } catch (err: any) {
-      setErrorMessage('Failed to delete property.')
-    }
-  }
-
-  // Verify Listing (mock functionality for employee)
-  const handleVerifyProperty = (propertyId: string) => {
-    const index = mockProperties.findIndex(p => p.id === propertyId)
-    if (index !== -1) {
-      mockProperties[index].status = 'published'
-      mockProperties[index].is_published = true
-      saveMockPropertiesToStorage()
-      setPropertiesList([...mockProperties])
-      setSuccessMessage('Property ad successfully verified and published!')
-    }
-  }
-
-  const unverifiedProperties = propertiesList.filter(p => !p.is_published)
 
   return {
     user,
@@ -138,6 +159,8 @@ export function useDashboardPageModel() {
     userProperties,
     unverifiedProperties,
     usersList,
+    hostelList,
+    refetchHostelList,
     newEmployeeEmail,
     setNewEmployeeEmail,
     newEmployeeName,
@@ -150,6 +173,11 @@ export function useDashboardPageModel() {
     handleDeleteUser,
     handleDeleteProperty,
     handleVerifyProperty,
+    hostelConfigData,
+    hostelPropertyId: hostelPropertyId || '1',
+    isHostelConfigLoading,
+
+    handleSaveHostelConfig,
     logout,
   }
 }

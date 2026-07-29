@@ -6,7 +6,7 @@ import { useSignupPageModel } from './SignupPageModel'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Mail, Lock, User, Phone, Shield } from 'lucide-react'
+import { Mail, Lock, User, Phone, Shield, ArrowLeft } from 'lucide-react'
 
 export default function SignupPage() {
   const {
@@ -25,13 +25,22 @@ export default function SignupPage() {
   } = useSignupPageModel()
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-50/30 dark:bg-slate-950/20">
-      
+    <div className="min-h-[85vh] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-50/30 dark:bg-slate-950/20 space-y-4">
+      {/* Back to Catalog Link */}
+      <div className="w-full max-w-md flex justify-between items-center z-10">
+        <Link
+          href="/"
+          className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Catalog</span>
+        </Link>
+      </div>
+
       {/* Background decoration */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/5 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none z-0"></div>
- 
+
       <Card className="max-w-md w-full p-8 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 rounded-3xl shadow-xl dark:shadow-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl space-y-6 relative z-10">
-        
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex p-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-2">
@@ -50,7 +59,7 @@ export default function SignupPage() {
             </Link>
           </p>
         </div>
- 
+
         {/* Form */}
         <form className="space-y-4" onSubmit={handleSignup}>
           <div className="space-y-4">
@@ -87,6 +96,7 @@ export default function SignupPage() {
               label="Password"
               type="password"
               required
+              showPasswordToggle={true}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -111,8 +121,8 @@ export default function SignupPage() {
             </Button>
           </div>
         </form>
-
       </Card>
     </div>
   )
 }
+

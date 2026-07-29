@@ -1,0 +1,30 @@
+[project]
+name = "rentora"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3==1.39.4",
+    "celery==5.5.3",
+    "channels==4.2.2",
+    "channels-redis==4.3.0",
+    "django-celery-beat==2.8.1",
+    "django~=5.2.0",
+    "django-cors-headers==4.7.0",
+    "django-filter==25.1",
+    "django-storages==1.14.6",
+    "djangorestframework==3.16.0",
+    "djangorestframework-simplejwt==5.5.0",
+    "drf-spectacular==0.28.0",
+    "gunicorn==23.0.0",
+    "pillow==11.3.0",
+    "psycopg[binary]==3.2.9",
+    "python-decouple==3.8",
+    "redis==6.2.0",
+    "requests==2.32.4",
+    "django-celery-results==2.6.0",
+    "daphne==4.2.1",
+    "whitenoise==6.9.0",
+    "django-extensions==4.1",
+]

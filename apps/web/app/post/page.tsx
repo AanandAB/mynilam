@@ -185,15 +185,22 @@ export default function PostAdPage() {
                   onChange={(e) => model.setTitle(e.target.value)}
                 />
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Description</label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Description</label>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                      {model.description.length} / 1000 characters
+                    </span>
+                  </div>
                   <textarea
                     rows={4}
+                    maxLength={1000}
                     placeholder="Describe the property details, amenities, neighborhood..."
                     className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all duration-200"
                     value={model.description}
                     onChange={(e) => model.setDescription(e.target.value)}
                   />
                 </div>
+
               </div>
 
               <Input

@@ -15,6 +15,12 @@ export function usePostPageModel() {
   const { user, isLoading: isAuthLoading } = useAuth()
   const [step, setStep] = useState<Step>(1)
   
+  useEffect(() => {
+    if (!isAuthLoading && (!user || user.role === 'guest')) {
+      router.push('/login')
+    }
+  }, [user, isAuthLoading, router])
+  
   // Form values
   const [listingType, setListingType] = useState<FormListingType>('rent')
   const [propertyType, setPropertyType] = useState<PropertyType | 'roommate' | 'flatshare'>('flat')

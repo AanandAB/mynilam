@@ -5,13 +5,29 @@ import { useDashboardPageModel } from './DashboardPageModel'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { CityAutocomplete } from '@/components/ui/city-autocomplete'
 import { 
   Building2, PlusCircle, Trash2, Shield, User, Briefcase, 
   Sparkles, CheckCircle2, AlertCircle, LogOut, ArrowRight, ShieldCheck,
-  Compass
+  Compass,
+  Users,
+  Heart,
+  Mail,
+  MessageSquare,
+  Calendar,
+  Camera
 } from 'lucide-react'
 import Link from 'next/link'
+import { RoomBedGrid } from '@/components/dashboard/RoomBedGrid'
 import { HostelFinder } from '@/components/properties/HostelFinder'
+import { FavoritesTab } from '@/components/dashboard/FavoritesTab'
+import { InquiriesTab } from '@/components/dashboard/InquiriesTab'
+import { MessagesTab } from '@/components/dashboard/MessagesTab'
+import { VisitsTab } from '@/components/dashboard/VisitsTab'
+import { HostelRequestsTab } from '@/components/dashboard/HostelRequestsTab'
+import { HostelPhotosSection } from '@/components/dashboard/HostelPhotosSection'
+import { useFavorites, useToggleFavorite } from '@/app/hooks/use-favorites'
+
 
 export default function DashboardPage() {
   const {
@@ -22,6 +38,8 @@ export default function DashboardPage() {
     userProperties,
     unverifiedProperties,
     usersList,
+    hostelList,
+    refetchHostelList,
     newEmployeeEmail,
     setNewEmployeeEmail,
     newEmployeeName,
@@ -34,114 +52,159 @@ export default function DashboardPage() {
     handleDeleteUser,
     handleDeleteProperty,
     handleVerifyProperty,
+    hostelConfigData,
+    hostelPropertyId,
+    isHostelConfigLoading,
+
+    handleSaveHostelConfig,
     logout,
   } = useDashboardPageModel()
 
-  // Hostel Admin Configuration states (persisted to localStorage)
-  const [hostelName, setHostelName] = React.useState('Nest')
-  const [totalBedSpaces, setTotalBedSpaces] = React.useState(120)
-  const [hostelPricing, setHostelPricing] = React.useState<{ share: number | string; price: number }[]>([
-  { share: 1, price: 1200 },
-  { share: 2, price: 2200 },
-  { share: 3, price: 3000 },
-  { share: 4, price: 3500 },
-]);
-const [totalRooms, setTotalRooms] = React.useState(40)
-  const [sharings, setSharings] = React.useState(['1', '2', '3'] as string[])
-  const [bathroomCount, setBathroomCount] = React.useState(20)
-  const [attachedBathrooms, setAttachedBathrooms] = React.useState(true)
-  const [wifiEnabled, setWifiEnabled] = React.useState(true)
-  const [wifiSpeed, setWifiSpeed] = React.useState('105 Mbps')
-  const [hotWater, setHotWater] = React.useState(true)
-  const [waterFilter, setWaterFilter] = React.useState(true)
-  const [messFood, setMessFood] = React.useState(true)
-  const [laundryEnabled, setLaundryEnabled] = React.useState(true)
-  const [acAvailable, setAcAvailable] = React.useState(true)
-  const [address, setAddress] = React.useState('789 Nest Lane')
-  const [city, setCity] = React.useState('Bangalore')
-  const [priceMonthly, setPriceMonthly] = React.useState(8500)
-  const [genderType, setGenderType] = React.useState('unisex' as 'boys' | 'girls' | 'unisex')
+  const [formState, setFormState] = React.useState({
+    hostelName: 'Nest',
+    totalBedSpaces: 120,
+    hostelPricing: [
+      { share: 1, price: 1200 },
+      { share: 2, price: 2200 },
+      { share: 3, price: 3000 },
+      { share: 4, price: 3500 },
+    ],
+    totalRooms: 40,
+    sharings: ['1', '2', '3'] as string[],
+    bathroomCount: 20,
+    attachedBathrooms: true,
+    wifiEnabled: true,
+    wifiSpeed: '105 Mbps',
+    hotWater: true,
+    waterFilter: true,
+    messFood: true,
+    laundryEnabled: true,
+    acAvailable: true,
+    address: '789 Nest Lane',
+    city: 'Bangalore',
+    stateName: 'Karnataka',
+    area: '',
+    zipCode: '',
+    priceMonthly: 8500,
+    genderType: 'unisex' as 'boys' | 'girls' | 'unisex',
+    landmark: '',
+    streetAddress: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
+    vacantBeds: 15,
+    vacantRooms: 5,
+    vacantSharings: ['2', '3'] as string[],
+    waterSource: 'Municipal Supply & Borewell',
+    parking: 'bike',
+    preferredTenant: 'any',
+    isUpstairs: false,
+    hostelDescription: 'A comfortable, modern hostel providing premium amenities, 24/7 security, high-speed WiFi, nutritious mess meals, and quiet study spaces for students and working professionals.',
+  })
 
-  // Geolocation & vacancy configurations
-  const [vacantBeds, setVacantBeds] = React.useState(15)
-  const [vacantRooms, setVacantRooms] = React.useState(5)
-  const [vacantSharings, setVacantSharings] = React.useState(['2', '3'] as string[])
-  const [waterSource, setWaterSource] = React.useState('Municipal Supply & Borewell')
+  // Destructure for easy access
+  const {
+    hostelName, totalBedSpaces, hostelPricing, totalRooms, sharings, bathroomCount,
+    attachedBathrooms, wifiEnabled, wifiSpeed, hotWater, waterFilter, messFood,
+    laundryEnabled, acAvailable, address, city, stateName, area, zipCode,
+    priceMonthly, genderType, landmark, streetAddress, latitude, longitude,
+    vacantBeds, vacantRooms, vacantSharings, waterSource, parking,
+    preferredTenant, isUpstairs, hostelDescription
+  } = formState
+
+  // Derived setters to avoid breaking existing JSX
+  const updateField = (field: string) => (val: any) => {
+    setFormState(p => ({ ...p, [field]: typeof val === 'function' ? val(p[field as keyof typeof p]) : val }))
+  }
+  const setHostelName = updateField('hostelName')
+  const setTotalBedSpaces = updateField('totalBedSpaces')
+  const setHostelPricing = updateField('hostelPricing')
+  const setTotalRooms = updateField('totalRooms')
+  const setSharings = updateField('sharings')
+  const setBathroomCount = updateField('bathroomCount')
+  const setAttachedBathrooms = updateField('attachedBathrooms')
+  const setWifiEnabled = updateField('wifiEnabled')
+  const setWifiSpeed = updateField('wifiSpeed')
+  const setHotWater = updateField('hotWater')
+  const setWaterFilter = updateField('waterFilter')
+  const setMessFood = updateField('messFood')
+  const setLaundryEnabled = updateField('laundryEnabled')
+  const setAcAvailable = updateField('acAvailable')
+  const setAddress = updateField('address')
+  const setCity = updateField('city')
+  const setStateName = updateField('stateName')
+  const setArea = updateField('area')
+  const setZipCode = updateField('zipCode')
+  const setPriceMonthly = updateField('priceMonthly')
+  const setGenderType = updateField('genderType')
+  const setLandmark = updateField('landmark')
+  const setStreetAddress = updateField('streetAddress')
+  const setLatitude = updateField('latitude')
+  const setLongitude = updateField('longitude')
+  const setVacantBeds = updateField('vacantBeds')
+  const setVacantRooms = updateField('vacantRooms')
+  const setVacantSharings = updateField('vacantSharings')
+  const setWaterSource = updateField('waterSource')
+  const setParking = updateField('parking')
+  const setPreferredTenant = updateField('preferredTenant')
+  const setIsUpstairs = updateField('isUpstairs')
+  const setHostelDescription = updateField('hostelDescription')
+
+  const [hostelSubTab, setHostelSubTab] = React.useState<'basic' | 'amenities' | 'location' | 'pricing' | 'vacancy' | 'rooms'>('basic')
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('mock_hostel_admin_config')
-      if (saved) {
-        try {
-          const config = JSON.parse(saved)
-          const defaultPricing = [
-            { share: 1, price: 1200 },
-            { share: 2, price: 2200 },
-            { share: 3, price: 3000 },
-            { share: 4, price: 3500 },
-          ];
-          const savedPricing = config.hostelPricing || defaultPricing;
-          setHostelPricing(savedPricing);
-          setHostelName(config.hostelName || 'Nest');
-          setTotalBedSpaces(config.totalBedSpaces || 120);
-          setTotalRooms(config.totalRooms || 40);
-          setSharings(config.sharings || ['1', '2', '3'])
-          setBathroomCount(config.bathroomCount || 20)
-          setAttachedBathrooms(config.attachedBathrooms ?? true)
-          setWifiEnabled(config.wifiEnabled ?? true)
-          setWifiSpeed(config.wifiSpeed || '105 Mbps')
-          setHotWater(config.hotWater ?? true)
-          setWaterFilter(config.waterFilter ?? true)
-          setMessFood(config.messFood ?? true)
-          setLaundryEnabled(config.laundryEnabled ?? true)
-          setAcAvailable(config.acAvailable ?? true)
-          setAddress(config.address || '789 Nest Lane')
-          setCity(config.city || 'Bangalore')
-          setPriceMonthly(config.priceMonthly || 8500)
-          setGenderType(config.genderType || 'unisex')
-          setVacantBeds(config.vacantBeds ?? 15)
-          setVacantRooms(config.vacantRooms ?? 5)
-          setVacantSharings(config.vacantSharings || ['2', '3'])
-          setWaterSource(config.waterSource || 'Municipal Supply & Borewell')
-        } catch (e) {
-          console.error(e)
-        }
+    if (hostelConfigData) {
+      try {
+        const config = hostelConfigData
+        const defaultPricing = [
+          { share: 1, price: 1200 },
+          { share: 2, price: 2200 },
+          { share: 3, price: 3000 },
+          { share: 4, price: 3500 },
+        ];
+        
+        setFormState(prev => ({
+          ...prev,
+          hostelPricing: config.hostelPricing || defaultPricing,
+          hostelName: config.hostelName || 'Nest',
+          hostelDescription: config.description || config.hostelDescription || 'A comfortable, modern hostel providing premium amenities, 24/7 security, high-speed WiFi, nutritious mess meals, and quiet study spaces for students and working professionals.',
+          totalBedSpaces: (config.totalBedSpaces && config.totalBedSpaces > 0) ? config.totalBedSpaces : (config.vacantBeds ? config.vacantBeds * 2 : 120),
+          totalRooms: (config.totalRooms && config.totalRooms > 0) ? config.totalRooms : (config.vacantRooms ? config.vacantRooms * 2 : 40),
+          sharings: config.sharings || ['1', '2', '3'],
+          bathroomCount: config.bathroomCount || 20,
+          attachedBathrooms: config.attachedBathrooms ?? true,
+          wifiEnabled: config.wifiEnabled ?? true,
+          wifiSpeed: config.wifiSpeed || '105 Mbps',
+          hotWater: config.hotWater ?? true,
+          waterFilter: config.waterFilter ?? true,
+          messFood: config.messFood ?? true,
+          laundryEnabled: config.laundryEnabled ?? true,
+          acAvailable: config.acAvailable ?? true,
+          address: config.address || '789 Nest Lane',
+          city: config.city || 'Bangalore',
+          stateName: config.state || 'Karnataka',
+          area: config.area || '',
+          zipCode: config.zipCode || '',
+          priceMonthly: config.priceMonthly || 8500,
+          genderType: config.genderType || 'unisex',
+          landmark: config.landmark || '',
+          streetAddress: config.streetAddress || '',
+          latitude: config.latitude || null,
+          longitude: config.longitude || null,
+          vacantBeds: config.vacantBeds ?? 15,
+          vacantRooms: config.vacantRooms ?? 5,
+          vacantSharings: config.vacantSharings || ['2', '3'],
+          waterSource: config.waterSource || 'Municipal Supply & Borewell',
+          parking: config.parking || 'bike',
+          preferredTenant: config.preferredTenant || 'any',
+          isUpstairs: config.isUpstairs ?? false
+        }))
+      } catch (e) {
+        console.error(e)
       }
     }
-  }, [])
+  }, [hostelConfigData])
 
-  const handleSaveHostelConfig = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (typeof window !== 'undefined') {
-      const config = {
-        hostelName,
-        totalBedSpaces,
-        totalRooms,
-        sharings,
-        bathroomCount,
-        attachedBathrooms,
-        wifiEnabled,
-        wifiSpeed,
-        hotWater,
-        waterFilter,
-        messFood,
-        laundryEnabled,
-        acAvailable,
-        address,
-        city,
-        priceMonthly,
-        genderType,
-        vacantBeds,
-        vacantRooms,
-        vacantSharings,
-        hostelPricing,
-        waterSource
-      }
-      localStorage.setItem('mock_hostel_admin_config', JSON.stringify(config))
-      setSuccessMessage('Hostel configuration updated successfully!')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
+  // handleSaveHostelConfig is provided by useDashboardPageModel
 
   if (isLoading) {
     return (
@@ -253,7 +316,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
           {user.role !== 'hostel_admin' && (
             <button 
               onClick={() => setActiveTab('my-ads')}
-              className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'my-ads' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-650 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/60'}`}
+              className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'my-ads' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
             >
               <Building2 className="w-4 h-4" />
               <span>{user.role === 'super_admin' ? 'All Active Ads' : user.role === 'guest' ? 'Browse Properties' : 'My Ad Listings'}</span>
@@ -264,16 +327,57 @@ const [totalRooms, setTotalRooms] = React.useState(40)
           )}
 
           {user.role === 'hostel_admin' && (
+            <>
+              <button 
+                onClick={() => setActiveTab('hostel-manage')}
+                className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'hostel-manage' ? 'bg-indigo-600 text-white dark:bg-indigo-600 shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+              >
+                <Compass className="w-4 h-4" />
+                <span>Hostel Management</span>
+              </button>
+              <button 
+                onClick={() => setActiveTab('hostel-photos')}
+                className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'hostel-photos' ? 'bg-indigo-600 text-white dark:bg-indigo-600 shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+              >
+                <Camera className="w-4 h-4 text-indigo-400" />
+                <span>Hostel Photos</span>
+              </button>
+            </>
+          )}
+
+          {user.role !== 'hostel_admin' && (
             <button 
-              onClick={() => setActiveTab('hostel-manage')}
-              className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'hostel-manage' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-650 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/60'}`}
+              onClick={() => setActiveTab('favorites')}
+              className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'favorites' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
             >
-              <Compass className="w-4 h-4" />
-              <span>Hostel Management</span>
+              <Heart className="w-4 h-4" />
+              <span>Favorites</span>
             </button>
           )}
 
+          <button 
+            onClick={() => setActiveTab('inquiries')}
+            className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'inquiries' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+          >
+            <Mail className="w-4 h-4" />
+            <span>Inquiries</span>
+          </button>
 
+          <button 
+            onClick={() => setActiveTab('messages')}
+            className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'messages' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Messages</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('visits')}
+            className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'visits' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'}`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Visits</span>
+          </button>
 
           {user.role === 'employee' && (
             <button 
@@ -308,6 +412,14 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                   {regularUsers.length}
                 </span>
               </button>
+
+              <button 
+                onClick={() => setActiveTab('hostel-requests')}
+                className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === 'hostel-requests' ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/60'}`}
+              >
+                <Building2 className="w-4 h-4" />
+                <span>Hostel Requests</span>
+              </button>
             </>
           )}
         </aside>
@@ -318,6 +430,10 @@ const [totalRooms, setTotalRooms] = React.useState(40)
 
 
           {/* TAB 1: Ad Listings */}
+          {activeTab === 'favorites' && <FavoritesTab />}
+          {activeTab === 'inquiries' && <InquiriesTab />}
+          {activeTab === 'messages' && <MessagesTab />}
+          {activeTab === 'visits' && <VisitsTab />}
           {activeTab === 'my-ads' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -479,6 +595,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
               </div>
             </div>
           )}
+          {activeTab === 'hostel-requests' && user.role === 'super_admin' && <HostelRequestsTab hostelList={hostelList} refetchHostelList={refetchHostelList} />}
 
           {/* TAB 4: User Directory (Only Super Admin) */}
           {activeTab === 'users-list' && user.role === 'super_admin' && (
@@ -526,7 +643,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                   <Compass className="w-5 h-5 text-indigo-500" />
                   <span>Hostel & PG Management System</span>
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">Configure your PG/Hostel capacity, occupancy rules, bathrooms, and utility facilities for students and professionals.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-300 mt-1 font-medium">Configure your PG/Hostel capacity, occupancy rules, bathrooms, and utility facilities for students and professionals.</p>
               </div>
 
               {/* Statistics Overview Grid */}
@@ -539,18 +656,87 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                   { label: 'Target Audience', value: genderType === 'unisex' ? 'Co-Living / Unisex' : genderType === 'boys' ? 'Boys Only' : 'Girls Only', desc: 'Gender target', color: 'amber' }
                 ].map((stat, idx) => (
                   <Card key={idx} className="p-4 border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest">{stat.label}</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{stat.label}</span>
                     <div className="my-2">
                       <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{stat.value}</span>
                     </div>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-550 leading-none">{stat.desc}</span>
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-400 leading-none">{stat.desc}</span>
                   </Card>
                 ))}
               </div>
 
-              <form onSubmit={handleSaveHostelConfig} className="space-y-6">
-                
+              {/* Sub-Tabs Navigation Row */}
+              <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto scrollbar-none">
+                {[
+                  { id: 'basic' as const, label: '1. Basic & Capacity' },
+                  { id: 'pricing' as const, label: '2. Pricing Chart' },
+                  { id: 'amenities' as const, label: '3. Utilities & Facilities' },
+                  { id: 'location' as const, label: '4. Address & Geolocation' },
+                  { id: 'vacancy' as const, label: '5. Vacancy Details' },
+                  { id: 'rooms' as const, label: '6. Room & Bed Matrix' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setHostelSubTab(tab.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                      hostelSubTab === tab.id
+                        ? 'bg-slate-900 text-white border-slate-950 dark:bg-indigo-600 dark:border-indigo-500 shadow-sm'
+                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {hostelSubTab === 'rooms' && (
+                <RoomBedGrid propertyId={hostelPropertyId} />
+              )}
+
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                handleSaveHostelConfig({
+                  hostelName,
+                  totalBedSpaces,
+                  totalRooms,
+                  sharings,
+                  bathroomCount,
+                  attachedBathrooms,
+                  wifiEnabled,
+                  wifiSpeed,
+                  hotWater,
+                  waterFilter,
+                  messFood,
+                  laundryEnabled,
+                  acAvailable,
+                  address,
+                  city,
+                  priceMonthly,
+                  genderType,
+                  vacantBeds,
+                  vacantRooms,
+                  vacantSharings,
+                  hostelPricing,
+                  waterSource,
+                  landmark,
+                  streetAddress,
+                  latitude,
+                  longitude,
+                  state: stateName,
+                  area,
+                  zipCode,
+                  parking,
+                  preferredTenant,
+                  isUpstairs,
+                  description: hostelDescription,
+                })
+              }} className="space-y-6">
+
+
                 {/* Section A: Core Capacity & Layout */}
+                {(hostelSubTab === 'basic') && (
+
                 <Card className="p-6 border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-2">
                     1. Capacity & Layout Configuration
@@ -582,38 +768,76 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                     </div>
                   </div>
 
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hostel Description & Overview</label>
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                        {hostelDescription.length} / 1000 characters
+                      </span>
+                    </div>
+                    <textarea 
+                      rows={3}
+                      maxLength={1000}
+                      value={hostelDescription} 
+                      onChange={(e) => setHostelDescription(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      placeholder="Describe your hostel facilities, rules, neighborhood, nearby colleges/companies, security..."
+                    />
+                  </div>
+
+
+                  <div className="flex items-center justify-between bg-indigo-50/60 dark:bg-indigo-950/30 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/40 text-xs text-indigo-900 dark:text-indigo-300 font-bold mb-2">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+                      Capacity is automatically synced live from Room & Bed Matrix.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setHostelSubTab('rooms')}
+                      className="underline font-extrabold hover:text-indigo-600 shrink-0"
+                    >
+                      Manage Matrix →
+                    </button>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Total Bed Spaces</label>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Bed Spaces</label>
+                        <span className="text-[9px] font-black uppercase text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded">🔒 Synced</span>
+                      </div>
                       <input 
                         type="number" 
                         value={totalBedSpaces} 
-                        onChange={(e) => setTotalBedSpaces(Number(e.target.value))}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        min="1"
-                        required
+                        readOnly
+                        disabled
+                        className="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Total Rooms</label>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Rooms</label>
+                        <span className="text-[9px] font-black uppercase text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded">🔒 Synced</span>
+                      </div>
                       <input 
                         type="number" 
                         value={totalRooms} 
-                        onChange={(e) => setTotalRooms(Number(e.target.value))}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        min="1"
-                        required
+                        readOnly
+                        disabled
+                        className="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Total Bathrooms</label>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Bathrooms</label>
+                        <span className="text-[9px] font-black uppercase text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded">🔒 Synced</span>
+                      </div>
                       <input 
                         type="number" 
                         value={bathroomCount} 
-                        onChange={(e) => setBathroomCount(Number(e.target.value))}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        min="1"
-                        required
+                        readOnly
+                        disabled
+                        className="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -630,7 +854,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                       ].map((item) => {
                         const isChecked = sharings.includes(item.id)
                         return (
-                          <label key={item.id} className="flex items-center space-x-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <label key={item.id} className="flex items-center space-x-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
                             <input 
                               type="checkbox"
                               checked={isChecked}
@@ -641,7 +865,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                                   setSharings(sharings.filter(id => id !== item.id))
                                 }
                               }}
-                              className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-850"
+                              className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-800"
                             />
                             <span>{item.label}</span>
                           </label>
@@ -650,34 +874,82 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                     </div>
                   </div>
 
-                  <div className="pt-2 flex items-center space-x-2.5">
-                    <input 
-                      type="checkbox" 
-                      id="attached_bath"
-                      checked={attachedBathrooms}
-                      onChange={(e) => setAttachedBathrooms(e.target.checked)}
-                      className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-850"
-                    />
-                    <label htmlFor="attached_bath" className="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
-                      Are bathrooms attached inside rooms?
-                    </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Parking Facilities</label>
+                      <select 
+                        value={parking} 
+                        onChange={(e) => setParking(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      >
+                        <option value="none">No Reserved Parking</option>
+                        <option value="bike">Two-Wheeler / Bike Only</option>
+                        <option value="car-open">Four-Wheeler / Car (Open Parking)</option>
+                        <option value="car-covered">Four-Wheeler / Car (Covered Parking)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Preferred Tenant Type</label>
+                      <select 
+                        value={preferredTenant} 
+                        onChange={(e) => setPreferredTenant(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      >
+                        <option value="any">Any (Students / Working Professionals)</option>
+                        <option value="bachelors">Bachelors / Single Professionals Only</option>
+                        <option value="family">Families Only</option>
+                      </select>
+                    </div>
                   </div>
+
+                  <div className="pt-2 flex flex-col sm:flex-row gap-4">
+                    <div className="flex items-center space-x-2.5">
+                      <input 
+                        type="checkbox" 
+                        id="attached_bath"
+                        checked={attachedBathrooms}
+                        onChange={(e) => setAttachedBathrooms(e.target.checked)}
+                        className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-800"
+                      />
+                      <label htmlFor="attached_bath" className="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                        Attached Bathrooms Inside Rooms
+                      </label>
+                    </div>
+
+                    <div className="flex items-center space-x-2.5">
+                      <input 
+                        type="checkbox" 
+                        id="is_upstairs"
+                        checked={isUpstairs}
+                        onChange={(e) => setIsUpstairs(e.target.checked)}
+                        className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-800"
+                      />
+                      <label htmlFor="is_upstairs" className="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                        Upper Floor Unit (Uncheck for Ground Floor Unit)
+                      </label>
+                    </div>
+                  </div>
+
                 </Card>
+                )}
 
                 {/* Section B: Amenities & Facilities */}
+                {hostelSubTab === 'amenities' && (
                 <Card className="p-6 border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 space-y-4">
+
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-2">
                     2. Utilities & Facilities
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="flex items-start space-x-3 p-3 bg-slate-50/50 dark:bg-slate-850/30 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex items-start space-x-3 p-3 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
                       <input 
                         type="checkbox" 
                         id="wifi_chk"
                         checked={wifiEnabled}
                         onChange={(e) => setWifiEnabled(e.target.checked)}
-                        className="h-4.5 w-4.5 mt-0.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-850"
+                        className="h-4.5 w-4.5 mt-0.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-800"
                       />
                       <div className="flex-grow space-y-1">
                         <label htmlFor="wifi_chk" className="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">High Speed WiFi</label>
@@ -686,10 +958,24 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                             type="text" 
                             value={wifiSpeed}
                             onChange={(e) => setWifiSpeed(e.target.value)}
-                            className="w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-850 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-900 dark:text-white focus:outline-none"
+                            className="w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-900 dark:text-white focus:outline-none"
                             placeholder="e.g. 100 Mbps"
                           />
                         )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center p-3 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <div className="flex-grow space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Water Source Details *</label>
+                        <input 
+                          type="text" 
+                          value={waterSource} 
+                          onChange={(e) => setWaterSource(e.target.value)}
+                          className="w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-lg py-1.5 px-2.5 text-xs text-slate-900 dark:text-white focus:outline-none"
+                          placeholder="e.g. Borewell & Municipal"
+                          required
+                        />
                       </div>
                     </div>
 
@@ -700,33 +986,78 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                       { checked: laundryEnabled, setter: setLaundryEnabled, id: 'laundry_chk', label: 'Laundry Service' },
                       { checked: acAvailable, setter: setAcAvailable, id: 'ac_chk', label: 'Air Conditioning Available' }
                     ].map((facility) => (
-                      <div key={facility.id} className="flex items-center space-x-3 p-3 bg-slate-50/50 dark:bg-slate-850/30 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <div key={facility.id} className="flex items-center space-x-3 p-3 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
                         <input 
                           type="checkbox" 
                           id={facility.id}
                           checked={facility.checked}
                           onChange={(e) => facility.setter(e.target.checked)}
-                          className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-850"
+                          className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-800"
                         />
                         <label htmlFor={facility.id} className="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">{facility.label}</label>
                       </div>
                     ))}
                   </div>
                 </Card>
+                )}
+
 
                 {/* Section C: Location Details */}
+                {hostelSubTab === 'location' && (
                 <Card className="p-6 border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-2">
                     3. Location Details
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Input label="City" type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Bangalore" required />
-                    <Input label="Hostel Address" type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. 789 Nest Lane" required />
-                    <Input label="Water Source Details" type="text" value={waterSource} onChange={(e) => setWaterSource(e.target.value)} placeholder="e.g. Borewell & Municipal" required />
+                    <Input label="State" type="text" value={stateName} onChange={(e) => setStateName(e.target.value)} placeholder="e.g. Karnataka" required />
+                    <CityAutocomplete label="City" value={city} onChange={(val) => setCity(val)} placeholder="e.g. Bangalore" required />
+                    <Input label="Area / Locality" type="text" value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. Koramangala" required />
+                    <Input label="Zip/Postal Code" type="text" value={zipCode} onChange={(e) => setZipCode(e.target.value)} placeholder="e.g. 560034" />
+                    <Input label="Hostel General Location (Area/Street)" type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. #789 Nest Lane, 5th Block" required />
+                  </div>
+                  
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-4">Exact Location (Hidden from public until inquiry accepted)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <Input label="Street Address" type="text" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} placeholder="e.g. #42, 1st Cross, 2nd Main" />
+                      <Input label="Landmark" type="text" value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="e.g. Behind SBI Bank" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Map Coordinates</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (navigator.geolocation) {
+                              navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                  setLatitude(position.coords.latitude)
+                                  setLongitude(position.coords.longitude)
+                                },
+                                (err) => alert('Unable to retrieve your location')
+                              )
+                            } else {
+                              alert('Geolocation is not supported by your browser')
+                            }
+                          }}
+                          className="text-[10px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 px-2 py-1 rounded transition-colors"
+                        >
+                          Detect My Location
+                        </button>
+                      </div>
+                      <div className="flex gap-4">
+                        <Input type="number" step="any" value={latitude || ''} onChange={(e) => setLatitude(parseFloat(e.target.value))} placeholder="Latitude" />
+                        <Input type="number" step="any" value={longitude || ''} onChange={(e) => setLongitude(parseFloat(e.target.value))} placeholder="Longitude" />
+                      </div>
+                      <p className="text-[10px] text-slate-500">To set coordinates, you can manually enter them, or click 'Detect My Location' while at the hostel.</p>
+                    </div>
                   </div>
                 </Card>
+                )}
 
-                {/* Section C: Pricing Details */}
+                {/* Section D: Pricing Details */}
+                {hostelSubTab === 'pricing' && (
                 <Card className="p-6 border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-2">
                     3. Pricing Details
@@ -755,7 +1086,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                               value={priceValue}
                               onChange={(e) => {
                                 const newPrice = Number(e.target.value);
-                                setHostelPricing((prev) => {
+                                setHostelPricing((prev: any[]) => {
                                   const existing = prev.find(p => p.share === (shareId === 'dorm' ? 'dorm' : Number(shareId)));
                                   if (existing) {
                                     return prev.map(p => p.share === existing.share ? { ...p, price: newPrice } : p);
@@ -771,34 +1102,55 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                       })}
                     </div>
                 </Card>
+                )}
 
-                {/* Section D: Current Vacancy & Availability Status */}
+                {/* Section E: Current Vacancy & Availability Status */}
+                {hostelSubTab === 'vacancy' && (
                 <Card className="p-6 border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 space-y-4">
+
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-2">
                     4. Current Vacancy & Availability Details
                   </h3>
 
+                  <div className="flex items-center justify-between bg-emerald-50/60 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/40 text-xs text-emerald-900 dark:text-emerald-300 font-bold mb-2">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+                      Live vacancy is automatically calculated from Room & Bed Matrix.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setHostelSubTab('rooms')}
+                      className="underline font-extrabold hover:text-emerald-600 shrink-0"
+                    >
+                      Open Matrix →
+                    </button>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Vacant Bed Spaces</label>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Vacant Bed Spaces</label>
+                        <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded">🔒 Synced</span>
+                      </div>
                       <input 
                         type="number" 
                         value={vacantBeds} 
-                        onChange={(e) => setVacantBeds(Number(e.target.value))}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none"
-                        min="0"
-                        required
+                        readOnly
+                        disabled
+                        className="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Vacant Rooms</label>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Vacant Rooms</label>
+                        <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded">🔒 Synced</span>
+                      </div>
                       <input 
                         type="number" 
                         value={vacantRooms} 
-                        onChange={(e) => setVacantRooms(Number(e.target.value))}
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none"
-                        min="0"
-                        required
+                        readOnly
+                        disabled
+                        className="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 px-3.5 text-xs font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -815,7 +1167,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                       ].map((item) => {
                         const isChecked = vacantSharings.includes(item.id)
                         return (
-                          <label key={item.id} className="flex items-center space-x-2 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer">
+                          <label key={item.id} className="flex items-center space-x-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
                             <input 
                               type="checkbox"
                               checked={isChecked}
@@ -826,7 +1178,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                                   setVacantSharings(vacantSharings.filter(id => id !== item.id))
                                 }
                               }}
-                              className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-850"
+                              className="h-4.5 w-4.5 rounded-lg text-indigo-600 border-slate-200 dark:border-slate-800"
                             />
                             <span>{item.label}</span>
                           </label>
@@ -835,16 +1187,32 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                     </div>
                   </div>
                 </Card>
+                )}
 
                 <div className="flex justify-end">
+
                   <Button type="submit" className="font-bold bg-indigo-650 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-2xl flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Save Configuration</span>
                   </Button>
                 </div>
               </form>
+
+              {/* Section 5: Hostel Photos */}
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-3">5. Hostel Photos</h3>
+                <HostelPhotosSection propertyId={hostelPropertyId} />
+              </div>
             </div>
           )}
+
+          {/* TAB 5B: Dedicated Hostel Photos View */}
+          {activeTab === 'hostel-photos' && user.role === 'hostel_admin' && (
+            <div className="space-y-6">
+              <HostelPhotosSection propertyId={hostelPropertyId} />
+            </div>
+          )}
+
 
           </main>
       </div>

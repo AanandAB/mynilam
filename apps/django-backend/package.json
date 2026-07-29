@@ -1,0 +1,9 @@
+{
+  "name": "@repo/django-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "uv run python manage.py runserver 8001",
+    "start": "uv run python manage.py runserver 8001"
+  }
+}
