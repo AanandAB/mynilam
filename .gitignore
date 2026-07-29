@@ -1,0 +1,26 @@
+node_modules
+dist
+.next
+*.log
+.env
+.env.local
+.DS_Store
+*.apk
+*.ipa
+*.keystore
+*.pem
+.vercel
+.expo
+
+# Turbo
+.turbo
+
+# Python/Django
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+db.sqlite3
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
