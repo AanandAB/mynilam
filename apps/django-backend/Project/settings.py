@@ -97,6 +97,10 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD', default='admin'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='5432'),
+        'OPTIONS': {
+            'sslmode': config('DB_SSLMODE', default='prefer'),
+        },
+        'DISABLE_SERVER_SIDE_CURSORS': config('DISABLE_SERVER_SIDE_CURSORS', default=False, cast=bool),
     }
 }
 
