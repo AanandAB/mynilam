@@ -8,5 +8,5 @@ jobs:
       runs-on: ubuntu-latest
 
       steps:
-        -name: Print message
-        run: echo "Hello world from GitHub actions"
+        - name: Print message
+          run: echo "Hello world from GitHub actions"
