@@ -1,27 +1,40 @@
-node_modules
-dist
-.next
-*.log
+# Environment variables (secrets — Render uses dashboard env vars instead)
 .env
-.env.local
-.DS_Store
+.env.*
+
+# Node / Next.js
+node_modules/
+dist/
+.next/
+.turbo/
+.vercel/
+
+# Expo / React Native
+.expo/
 *.apk
 *.ipa
-*.keystore
-*.pem
-.vercel
-.expo
 
-# Turbo
-.turbo
-
-# Python/Django
+# Python / Django
 .venv/
-staticfiles/
 __pycache__/
 *.py[cod]
 *$py.class
 db.sqlite3
+staticfiles/
+media/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
+*.egg
+
+# Logs
+*.log
+
+# Keys & Certs
+*.keystore
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db

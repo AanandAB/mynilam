@@ -206,8 +206,5 @@ REFRESH_COOKIE_SAMESITE = config("REFRESH_COOKIE_SAMESITE",default="Lax")
 # Cookie will only be sent to auth endpoints
 REFRESH_COOKIE_PATH = config("REFRESH_COOKIE_PATH", default="/api/auth/")
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Next.js frontend dev server
-]
-# If your authentication/requests rely on session cookies or credentials:
+CORS_ALLOWED_ORIGINS = [o.strip() for o in config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',') if o.strip()]
 CORS_ALLOW_CREDENTIALS = True

@@ -1,0 +1,12 @@
+name: My frist workflow
+
+on:
+  push:
+
+jobs:
+    hello:
+      runs-on: ubuntu-latest
+
+      steps:
+        -name: Print message
+        run: echo "Hello world from GitHub actions"
