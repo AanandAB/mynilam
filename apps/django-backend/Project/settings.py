@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-^95jp#41p@79yyc9afudd$(6j(2+iqjjng84)c(@jn_xr^$viz')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='*').split(',') if h.strip()]
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000').split(',') if o.strip()]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000,https://my-nilam-django-web.vercel.app').split(',') if o.strip()]
 
 
 # Application definition
@@ -206,8 +206,8 @@ REFRESH_COOKIE_SAMESITE = config("REFRESH_COOKIE_SAMESITE",default="Lax")
 # Cookie will only be sent to auth endpoints
 REFRESH_COOKIE_PATH = config("REFRESH_COOKIE_PATH", default="/api/auth/")
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Next.js frontend dev server
+CORS_ALLOWED_ORIGINS = [o.strip() for o in config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000,https://my-nilam-django-web.vercel.app').split(',') if o.strip()]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
 ]
-# If your authentication/requests rely on session cookies or credentials:
 CORS_ALLOW_CREDENTIALS = True
