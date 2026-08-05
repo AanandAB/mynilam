@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-gradient-to-br from-indigo-50/40 via-white to-purple-50/40 dark:from-indigo-950/20 dark:via-gray-950 dark:to-purple-950/20 text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen`}>
+      <body className={`${inter.className} bg-transparent text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryProvider>
             <div className="flex flex-col min-h-screen">

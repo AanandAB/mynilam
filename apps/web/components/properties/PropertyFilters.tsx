@@ -38,7 +38,7 @@ export const PropertyFilters: React.FC<PropertyFiltersProps> = ({ filters, onCha
   }
 
   return (
-    <Card className="space-y-6 shrink-0 h-fit sticky top-20 border border-gray-200/50 dark:border-gray-800/50 shadow-lg shadow-indigo-900/5 p-5 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl transition-all duration-300">
+    <Card className="space-y-6 shrink-0 h-fit sticky top-20 border-2 border-black dark:border-slate-600 rounded-2xl shadow-xl shadow-slate-900/10 p-5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl transition-all duration-300">
       
       {/* Title */}
       <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">

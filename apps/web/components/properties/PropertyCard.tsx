@@ -30,7 +30,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, viewType =
   }
 
   return (
-    <Card hoverEffect padding="none" className={`overflow-hidden group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 hover:shadow-lg dark:hover:border-slate-700 transition-all duration-300 ${viewType === 'list' ? 'sm:h-52' : ''}`}>
+    <Card hoverEffect padding="none" className={`overflow-hidden group relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border-2 border-black dark:border-slate-600 shadow-md shadow-slate-900/5 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-600 dark:hover:border-indigo-400 transition-all duration-300 ease-out ${viewType === 'list' ? 'sm:h-52' : ''}`}>
       
       {/* Bookmark Button */}
       <button

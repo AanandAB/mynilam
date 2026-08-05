@@ -33,7 +33,7 @@ export default function LoginPage() {
       {/* Background decoration */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/5 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none z-0"></div>
 
-      <Card className="max-w-md w-full p-8 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 rounded-3xl shadow-xl dark:shadow-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl space-y-6 relative z-10">
+      <Card className="max-w-md w-full p-8 sm:p-10 border-2 border-black dark:border-slate-600 rounded-3xl shadow-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl space-y-6 relative z-10 animate-island-float">
         
         {/* Brand/Header */}
         <div className="text-center space-y-2">

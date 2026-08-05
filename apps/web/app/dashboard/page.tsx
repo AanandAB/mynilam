@@ -170,7 +170,7 @@ const [totalRooms, setTotalRooms] = React.useState(40)
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       
       {/* 1. Welcoming Hero Banner */}
-      <section className="bg-slate-900 dark:bg-slate-950 text-white rounded-3xl p-8 sm:p-10 relative overflow-hidden border border-slate-800 shadow-xl">
+      <section className="bg-slate-950/95 dark:bg-slate-950/95 text-white rounded-3xl p-8 sm:p-10 relative overflow-hidden border-2 border-black dark:border-slate-600 shadow-2xl shadow-slate-950/20 backdrop-blur-2xl">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/30 via-slate-950/20 to-transparent pointer-events-none"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">

@@ -91,7 +91,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
       
       {/* Search Header Banner / Standalone Search Bar */}
       {!hideBanner ? (
-        <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden border border-indigo-950 shadow-md">
+        <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-xl p-6 sm:p-8 text-white relative overflow-hidden border border-indigo-950 shadow-md w-80 h-80 mx-auto my-8">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-850/40 via-transparent to-transparent pointer-events-none"></div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">

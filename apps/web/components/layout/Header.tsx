@@ -52,12 +52,12 @@ export const Header: React.FC = () => {
   }, [lastScrollY])
 
   return (
-    <header className={`bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 z-50 sticky top-0 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="w-full px-4 sm:px-8 h-16 flex items-center justify-between">
+    <header className={`sticky top-3 z-50 px-4 transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-16 opacity-0'}`}>
+      <div className="max-w-7xl mx-auto bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border-2 border-black dark:border-slate-600 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/50 px-4 sm:px-6 h-16 flex items-center justify-between transition-all duration-300 hover:shadow-2xl hover:border-indigo-600 dark:hover:border-indigo-400">
         
         {/* Brand Logo */}
         <Link href={user && user.role === 'hostel_admin' ? '/dashboard' : '/'} className="flex items-center space-x-2.5 group shrink-0 pr-1">
-          <div className="p-2.5 bg-slate-900 dark:bg-indigo-600 rounded-xl text-white shadow-md group-hover:scale-105 group-hover:rotate-1 transition-all duration-200">
+          <div className="p-2 bg-slate-900 dark:bg-indigo-600 rounded-xl text-white shadow-md group-hover:scale-105 group-hover:rotate-1 transition-all duration-200">
             <Home className="h-5 w-5" />
           </div>
           <span className="text-xl font-black tracking-tight whitespace-nowrap py-1 inline-block select-none">
@@ -76,7 +76,7 @@ export const Header: React.FC = () => {
         {user && (
           <nav className="hidden md:flex items-center space-x-1">
             {user.role !== 'hostel_admin' && (
-              <Link href="/" className="px-4 py-2 text-xs font-bold text-slate-655 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 rounded-xl transition-all duration-150">
+              <Link href="/" className="px-4 py-2 text-xs font-bold text-slate-650 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 rounded-xl transition-all duration-150">
                 Find Properties
               </Link>
             )}
