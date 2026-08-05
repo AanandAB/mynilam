@@ -15,7 +15,7 @@ importers:
   apps/web:
     dependencies:
       '@repo/shared':
-        specifier: workspace:*
+        specifier: workspace:1.0.0
         version: link:../../packages/shared
       '@tanstack/react-query':
         specifier: ^5.8.4
