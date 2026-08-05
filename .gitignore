@@ -27,6 +27,7 @@ media/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+apps/django-backend/staticfiles/
 *.egg-info/
 *.egg
 
