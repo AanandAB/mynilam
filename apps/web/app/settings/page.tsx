@@ -51,7 +51,7 @@ export default function SettingsPage() {
         
         {/* Profile Card Summary */}
         <aside className="md:col-span-1 space-y-4">
-          <Card className="p-6 border border-slate-200/60 dark:border-slate-800 text-center space-y-4 bg-white dark:bg-slate-900">
+          <Card className="p-6 border-2 border-black dark:border-slate-600 text-center space-y-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl shadow-xl">
             <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40 rounded-full flex items-center justify-center mx-auto text-2xl font-black">
               {model.user.full_name?.charAt(0).toUpperCase() || 'U'}
             </div>

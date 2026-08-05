@@ -4,8 +4,8 @@ import { Home, Mail, ArrowRight } from 'lucide-react'
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-950 text-gray-400 border-t border-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <footer className="w-full px-4 py-8 mt-auto">
+      <div className="max-w-7xl mx-auto bg-slate-950/95 dark:bg-slate-950/95 text-gray-400 backdrop-blur-2xl border-2 border-black dark:border-slate-600 rounded-3xl p-8 sm:p-12 shadow-2xl shadow-slate-950/40 animate-island-float hover:border-indigo-500/50 transition-all duration-300">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           
           {/* Brand Col */}
@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
                 <input
                   type="email"
                   placeholder="Your email address"
-                  className="w-full bg-gray-900 border border-gray-800 rounded-xl py-2.5 pl-11 pr-12 text-sm text-white focus:outline-none focus:border-indigo-600 placeholder-gray-500"
+                  className="w-full bg-gray-900/80 border border-gray-800 rounded-xl py-2.5 pl-11 pr-12 text-sm text-white focus:outline-none focus:border-indigo-600 placeholder-gray-500"
                 />
                 <button
                   type="submit"
@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-900 mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500">
+        <div className="border-t border-gray-800/80 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500">
           <p>© {new Date().getFullYear()} MyNilam. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 sm:mt-0">
             <Link href="/" className="hover:text-gray-400">Facebook</Link>

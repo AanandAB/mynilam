@@ -20,12 +20,12 @@ export const Card: React.FC<CardProps> = ({
   }
 
   const hoverStyles = hoverEffect
-    ? 'hover:-translate-y-1 hover:shadow-xl hover:shadow-gray-200/50 hover:border-gray-300 transition-all duration-300'
+    ? 'hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-600 dark:hover:border-indigo-400 transition-all duration-300 ease-out'
     : ''
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${paddings[padding]} ${hoverStyles} ${className}`}
+      className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border-2 border-black dark:border-slate-600 shadow-md shadow-slate-900/5 ${paddings[padding]} ${hoverStyles} ${className}`}
       {...props}
     >
       {children}

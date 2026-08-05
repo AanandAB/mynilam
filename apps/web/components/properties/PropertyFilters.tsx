@@ -38,15 +38,14 @@ export const PropertyFilters: React.FC<PropertyFiltersProps> = ({ filters, onCha
   }
 
   return (
-    <Card className="space-y-6 shrink-0 h-fit sticky top-20 max-h-[calc(100vh-180px)] overflow-y-auto custom-scrollbar border border-slate-200/60 dark:border-slate-800/80 shadow-lg shadow-indigo-900/5 p-5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl transition-all duration-300">
+    <Card className="space-y-6 shrink-0 h-fit sticky top-20 border-2 border-black dark:border-slate-600 rounded-2xl shadow-xl shadow-slate-900/10 p-5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl transition-all duration-300">
       
       {/* Title */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold">
+      <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex items-center space-x-2 text-gray-900 dark:text-white font-bold">
           <Filter className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
           <span>Search Filters</span>
         </div>
-
         <button
           onClick={resetFilters}
           className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center space-x-1 transition-colors"

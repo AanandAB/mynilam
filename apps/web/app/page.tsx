@@ -27,12 +27,12 @@ export default function HomePage() {
   if (!model.user || model.user.role === 'hostel_admin') return null
 
   return (
-    <div className="pb-24 bg-slate-50/50 dark:bg-slate-950/20 text-slate-800 dark:text-slate-100 min-h-screen">
+    <div className="pb-24 bg-transparent dark:bg-transparent text-slate-800 dark:text-slate-100 min-h-screen relative">
       
       {/* 1. High-End Glassmorphic Header Tab Switcher (Sticky at top-[64px]) */}
-      <div className="w-full bg-white/70 dark:bg-slate-950/70 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/80 sticky top-[64px] z-40 py-4 px-4 sm:px-6 shadow-sm transition-all duration-300">
+      <div className="w-full sticky top-[72px] z-40 py-4 px-4 sm:px-6 transition-all duration-300">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-slate-100/60 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-850/80 flex gap-2 relative shadow-inner">
+          <div className="bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl p-2 rounded-2xl border-2 border-black dark:border-slate-600 flex gap-2 relative shadow-xl shadow-slate-900/10">
             
             {/* Tab 1: Properties */}
             <button
@@ -77,7 +77,7 @@ export default function HomePage() {
         <div className="space-y-12">
           
           {/* Hero Section: Properties tab */}
-          <section className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-center relative overflow-hidden border-b border-slate-850 shadow-xl py-20 px-4">
+          <section className="bg-white/70 dark:bg-slate-900/70 text-center relative overflow-hidden border border-indigo-500 rounded-2xl shadow-xl py-16 px-6 max-w-7xl mx-auto my-12">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-950/40 via-transparent to-transparent pointer-events-none"></div>
             <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -87,7 +87,7 @@ export default function HomePage() {
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400 fill-indigo-400/20" />
                 Verified Rentals & Co-living
               </span>
-              <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-none">
+              <h1 className="text-4xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
                 Find Your Next Room
               </h1>
               <p className="text-slate-400 text-xs sm:text-base max-w-xl mx-auto leading-relaxed font-semibold">
@@ -233,7 +233,7 @@ export default function HomePage() {
         <div className="space-y-12">
           
           {/* Hero Section: Hostels tab */}
-          <section className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-center relative overflow-hidden border-b border-slate-850 shadow-xl py-20 px-4">
+          <section className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900/70 text-center relative overflow-hidden border-b border-slate-850 shadow-xl py-20 px-4">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-purple-955/40 via-transparent to-transparent pointer-events-none"></div>
             <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-pink-500/5 rounded-full blur-3xl pointer-events-none"></div>

@@ -9,7 +9,6 @@ import {
   Home, Users, Sparkles, Building2, Wifi, Coffee, Wind, Info, Compass,
   LayoutGrid, List, Map as MapIcon
 } from 'lucide-react'
-import { EmptyState } from '@/components/ui/empty-state'
 import dynamic from 'next/dynamic'
 
 const PropertyMap = dynamic(() => import('./PropertyMap'), {
@@ -92,7 +91,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
       
       {/* Search Header Banner / Standalone Search Bar */}
       {!hideBanner ? (
-        <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden border border-indigo-950 shadow-md">
+        <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-xl p-6 sm:p-8 text-white relative overflow-hidden border border-indigo-950 shadow-md w-80 h-80 mx-auto my-8">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-850/40 via-transparent to-transparent pointer-events-none"></div>
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
@@ -131,8 +130,8 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
         /* Standalone Search Bar when embedded under homepage hero */
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex items-center px-3 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex-grow gap-2">
-              <Search className="w-4 h-4 text-slate-400 dark:text-slate-400 shrink-0" />
+            <div className="flex items-center px-3 py-2 bg-slate-50 dark:bg-slate-850/50 rounded-xl border border-slate-100 dark:border-slate-800 flex-grow gap-2">
+              <Search className="w-4 h-4 text-slate-400 dark:text-slate-550 shrink-0" />
               <input
                 type="text"
                 placeholder="Keywords (mess, warden, CP...)"
@@ -141,8 +140,8 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
                 className="bg-transparent text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none w-full"
               />
             </div>
-            <div className="flex items-center px-3 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex-grow gap-2">
-              <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-400 shrink-0" />
+            <div className="flex items-center px-3 py-2 bg-slate-50 dark:bg-slate-850/50 rounded-xl border border-slate-100 dark:border-slate-800 flex-grow gap-2">
+              <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-550 shrink-0" />
               <input
                 type="text"
                 placeholder="City (e.g. Bangalore...)"
@@ -171,8 +170,8 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
               onClick={() => setCategoryTab(tab.id)}
               className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border hover:scale-[1.01] active:scale-95 duration-200 ${
                 isActive 
-                  ? 'bg-slate-900 dark:bg-indigo-600 text-white border-slate-950 dark:border-indigo-600 shadow-sm' 
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700'
+                  ? 'bg-slate-900 dark:bg-indigo-650 text-white border-slate-950 dark:border-indigo-600 shadow-sm' 
+                  : 'bg-white dark:bg-slate-900 text-slate-650 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -200,7 +199,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
 
           {/* Gender Preference Filters */}
           <div className="space-y-2">
-            <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">Gender Target</span>
+            <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest">Gender Target</span>
             <div className="grid grid-cols-2 gap-1.5">
               {[
                 { id: 'all' as const, label: 'Unrestricted / All' },
@@ -213,7 +212,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
                   onClick={() => setGenderFilter(g.id)}
                   className={`px-3 py-2 rounded-xl text-left text-[11px] font-bold border transition-colors ${
                     genderFilter === g.id 
-                      ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/60' 
+                      ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/60' 
                       : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400'
                   }`}
                 >
@@ -225,7 +224,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
 
           {/* Sharing Occupancy Type Filters */}
           <div className="space-y-2">
-            <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">Sharing / Occupancy</span>
+            <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest">Sharing / Occupancy</span>
             <select
               value={sharingFilter}
               onChange={(e) => setSharingFilter(e.target.value)}
@@ -243,7 +242,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
 
           {/* Price Filters */}
           <div className="space-y-2">
-            <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">
+            <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest">
               <span>Max Budget (₹/mo)</span>
               <span className="text-indigo-600 dark:text-indigo-400 font-extrabold text-xs">₹{priceMax.toLocaleString()}</span>
             </div>
@@ -260,7 +259,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
 
           {/* Amenity Checklist */}
           <div className="space-y-3 pt-2">
-            <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">Key Amenities</span>
+            <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest">Key Amenities</span>
             <div className="space-y-2">
               {[
                 { checked: wifi, setter: setWifi, label: 'High Speed WiFi', icon: Wifi },
@@ -268,7 +267,7 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
                 { checked: ac, setter: setAc, label: 'AC Rooms', icon: Wind },
                 { checked: laundry, setter: setLaundry, label: 'Laundry Facility', icon: Info },
               ].map((item, i) => (
-                <label key={i} className="flex items-center space-x-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer hover:text-indigo-500 dark:hover:text-indigo-400">
+                <label key={i} className="flex items-center space-x-2.5 text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer hover:text-indigo-500 dark:hover:text-indigo-400">
                   <input
                     type="checkbox"
                     checked={item.checked}
@@ -313,13 +312,13 @@ export const HostelFinder: React.FC<{ hideBanner?: boolean }> = ({ hideBanner = 
               Failed to retrieve hostels dataset.
             </div>
           ) : listings.length === 0 ? (
-            <EmptyState
-              icon={Compass}
-              title="No hostel spaces match your filters"
-              description="Try resetting your filters, increasing maximum budget, or clearing city search keywords."
-              actionLabel="Reset All Filters"
-              onAction={resetFilters}
-            />
+            <div className="py-24 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm w-full">
+              <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-5 text-slate-400 border border-slate-100 dark:border-slate-800">
+                <Compass className="w-8 h-8 text-slate-450" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">No hostel shared spaces match your filters</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Try resetting filters, adjusting budget limits, or clearing search keywords.</p>
+            </div>
           ) : viewType === 'map' ? (
             <PropertyMap properties={listings} />
           ) : (
