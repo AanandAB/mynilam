@@ -2,6 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+html { background: transparent; }
+
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, #000000 2px, transparent 2px),
+    linear-gradient(to bottom, #000000 2px, transparent 2px);
+  background-size: 1cm 1cm;
+  animation: grid-scroll 10s linear infinite;
+  z-index: 0;
+}
+
+
+
 body {
-  @apply bg-gray-50;
+  @apply bg-transparent dark:bg-transparent;
+}
+
+
+
+:root:not(.dark) html::before,
+html:not(.dark)::before {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.15) 1px, transparent 2px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.15) 1px, transparent 2px) !important;
+}
+
+.dark html::before,
+:root.dark html::before,
+html.dark::before {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.15) 1px, transparent 2px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 1px, transparent 2px) !important;
+}
+
+
+@keyframes grid-scroll {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 1cm 1cm;
+  }
+}
+
+@keyframes island-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-island-float {
+  animation: island-float 6s ease-in-out infinite;
+}
+
+
+/* Checkerboard pattern: 1cm squares alternating black and white */
+.checkerboard {
+  background-image: repeating-linear-gradient(45deg,
+      #000 0,
+      #000 0.5cm,
+      #fff 0.5cm,
+      #fff 1cm);
+  background-size: 1cm 1cm;
 }
