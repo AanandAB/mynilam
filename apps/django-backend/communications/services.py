@@ -191,5 +191,17 @@ def send_message(*, user, conversation_id: int, body: str):
         
         conv.last_message_at = timezone.now()
         conv.save(update_fields=['last_message_at'])
-        
+
+    # Real-time delivery + async notification, scheduled AFTER the transaction
+    # commits so connected clients never receive a message that isn't persisted
+    # yet (and the Celery task always reads a committed row).
+    from communications.realtime import broadcast_message
+    from communications.tasks import notify_new_message
+    transaction.on_commit(lambda: broadcast_message(message))
+    transaction.on_commit(lambda: notify_new_message.delay(
+        conversation_id=message.conversation_id,
+        sender_id=message.sender_id,
+        message_body=message.body,
+    ))
+
     return message

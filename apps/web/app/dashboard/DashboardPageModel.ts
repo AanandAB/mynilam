@@ -10,7 +10,7 @@ export function useDashboardPageModel() {
   const { user, isLoading: isAuthLoading, logout } = useAuth()
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'my-ads' | 'verify-users' | 'employees' | 'users-list' | 'hostel-manage' | 'hostel-photos' | 'favorites' | 'inquiries' | 'messages' | 'visits' | 'hostel-requests'>('my-ads')
+  const [activeTab, setActiveTab] = useState<'my-ads' | 'verify-users' | 'employees' | 'users-list' | 'hostel-manage' | 'hostel-photos' | 'favorites' | 'inquiries' | 'messages' | 'visits' | 'hostel-requests' | 'leases' | 'maintenance'>('my-ads')
 
 
   useEffect(() => {

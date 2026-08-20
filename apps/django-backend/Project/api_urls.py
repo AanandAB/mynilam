@@ -5,5 +5,7 @@ urlpatterns = [
     path('auth/',include("accounts.api_urls")), 
     path('properties/',include("properties.api_urls")),
     path('communications/', include("communications.api_urls")),
+    path('leases/', include("leases.api_urls")),
+    path('maintenance/', include("maintenance.api_urls")),
     path('geo/', include("geo.api_urls")),
 ]

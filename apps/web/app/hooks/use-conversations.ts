@@ -15,7 +15,7 @@ export function useConversationMessages(convId: string | number | undefined) {
     queryKey: ['conversations', convId, 'messages'],
     queryFn: () => communicationsApi.getConversationMessages(convId!).then(res => res.data),
     enabled: !!convId,
-    refetchInterval: 5000, // simple polling for new messages
+    // Real-time updates arrive via WebSocket (see use-chat-socket); no polling.
   })
 }
 

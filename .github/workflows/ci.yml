@@ -1,12 +1,72 @@
-name: My First Workflow
+name: CI
+
+# Runs on push to main/staging and on pull requests targeting staging.
+# Frontend: type-check + production build.
+# Backend:  config check + migrations against a Postgres service.
+#
+# NOTE: The backend test suite (accounts/tests.py) is currently STALE — it asserts an
+# old response shape ("access"/"user" at top level, "tenant" role) that no longer matches
+# the code ({success, data:{access_token, user}}, normal/employee/... roles). Re-enable
+# the `test` step below after the tests are updated.
 
 on:
   push:
+    branches: [main, staging]
+  pull_request:
+    branches: [staging]
 
 jobs:
-  hello:
+  frontend:
+    name: Frontend build
     runs-on: ubuntu-latest
-
     steps:
-      - name: Print message
-        run: echo "Hello GitHub Actions"
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+  backend:
+    name: Backend check + migrate
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: rentora_db
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      SECRET_KEY: ci-secret-key-not-for-prod
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: rentora_db
+      DB_USER: admin
+      DB_PASSWORD: admin
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_SSLMODE: disable
+    defaults:
+      run:
+        working-directory: apps/django-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -r requirements.txt
+      - run: python manage.py check
+      - run: python manage.py migrate
+      # Re-enable once accounts/tests.py matches the current API shape:
+      # - run: python manage.py test

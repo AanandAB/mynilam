@@ -8,10 +8,20 @@ import { Input } from '@/components/ui/input'
 import { 
   Building2, PlusCircle, Trash2, Shield, User, Briefcase, 
   Sparkles, CheckCircle2, AlertCircle, LogOut, ArrowRight, ShieldCheck,
-  Compass
+  Compass, Heart, MessageSquare, MessagesSquare, CalendarCheck, Camera, Hotel, ScrollText, Wrench,
+  type LucideIcon
 } from 'lucide-react'
 import Link from 'next/link'
 import { HostelFinder } from '@/components/properties/HostelFinder'
+import { FavoritesTab } from '@/components/dashboard/FavoritesTab'
+import { InquiriesTab } from '@/components/dashboard/InquiriesTab'
+import { MessagesTab } from '@/components/dashboard/MessagesTab'
+import { VisitsTab } from '@/components/dashboard/VisitsTab'
+import { HostelRequestsTab } from '@/components/dashboard/HostelRequestsTab'
+import { HostelPhotosSection } from '@/components/dashboard/HostelPhotosSection'
+import { RoomBedGrid } from '@/components/dashboard/RoomBedGrid'
+import { LeasesTab } from '@/components/dashboard/leases/LeasesTab'
+import { MaintenanceTab } from '@/components/dashboard/maintenance/MaintenanceTab'
 
 export default function DashboardPage() {
   const {
@@ -34,6 +44,9 @@ export default function DashboardPage() {
     handleDeleteUser,
     handleDeleteProperty,
     handleVerifyProperty,
+    hostelList,
+    refetchHostelList,
+    hostelPropertyId,
     logout,
   } = useDashboardPageModel()
 
@@ -165,6 +178,22 @@ const [totalRooms, setTotalRooms] = React.useState(40)
   // Filter lists for dashboard display
   const employees = usersList.filter(u => u.role === 'employee')
   const regularUsers = usersList.filter(u => u.role === 'normal' || u.role === 'guest')
+
+  // Extra dashboard tabs that were built (components + API + SDK) but never rendered.
+  // `show` gates visibility by role so the sidebar and <main> stay in sync.
+  // NOTE: the icons are typed loosely on purpose — lucide icons are all the same
+  // component shape, so a shared type keeps this list readable.
+  type ExtraTabId = 'leases' | 'maintenance' | 'favorites' | 'inquiries' | 'messages' | 'visits' | 'hostel-requests' | 'hostel-photos'
+  const extraTabs: { id: ExtraTabId; label: string; icon: LucideIcon; show: boolean }[] = [
+    { id: 'leases', label: 'Leases', icon: ScrollText, show: user.role !== 'guest' && user.role !== 'hostel_admin' },
+    { id: 'maintenance', label: 'Maintenance', icon: Wrench, show: user.role !== 'guest' && user.role !== 'hostel_admin' },
+    { id: 'favorites', label: 'Favorites', icon: Heart, show: user.role !== 'hostel_admin' },
+    { id: 'inquiries', label: 'Inquiries', icon: MessageSquare, show: user.role !== 'guest' },
+    { id: 'messages', label: 'Messages', icon: MessagesSquare, show: true },
+    { id: 'visits', label: 'Visits', icon: CalendarCheck, show: true },
+    { id: 'hostel-requests', label: 'Hostel Requests', icon: Hotel, show: user.role === 'super_admin' },
+    { id: 'hostel-photos', label: 'Hostel Photos', icon: Camera, show: user.role === 'hostel_admin' },
+  ]
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -310,6 +339,18 @@ const [totalRooms, setTotalRooms] = React.useState(40)
               </button>
             </>
           )}
+
+          {/* Additional tabs (Favorites / Inquiries / Messages / Visits / Hostel Requests / Hostel Photos) */}
+          {extraTabs.filter(t => t.show).map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center gap-2.5 ${activeTab === t.id ? 'bg-slate-900 text-white dark:bg-slate-800' : 'text-slate-650 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/60'}`}
+            >
+              <t.icon className="w-4 h-4" />
+              <span>{t.label}</span>
+            </button>
+          ))}
         </aside>
 
         {/* Tab Contents */}
@@ -843,7 +884,46 @@ const [totalRooms, setTotalRooms] = React.useState(40)
                   </Button>
                 </div>
               </form>
+
+              {/* Rooms & Beds — API-backed room/bed occupancy grid (see components/dashboard/RoomBedGrid.tsx) */}
+              <div className="pt-2">
+                <RoomBedGrid propertyId={hostelPropertyId} />
+              </div>
             </div>
+          )}
+
+          {/* ---- Newly-wired tabs (components were built but never rendered before) ---- */}
+
+          {/* TAB: Leases — rental lifecycle (applications / contracts / payments / invoices) */}
+          {activeTab === 'leases' && (
+            <LeasesTab user={user} userProperties={userProperties} />
+          )}
+
+          {/* TAB: Maintenance — raise / track / close repair requests */}
+          {activeTab === 'maintenance' && (
+            <MaintenanceTab userProperties={userProperties} />
+          )}
+
+          {/* TAB: Favorites — saved listings for any non-hostel_admin user */}
+          {activeTab === 'favorites' && <FavoritesTab />}
+
+          {/* TAB: Inquiries — sent/received property inquiries */}
+          {activeTab === 'inquiries' && <InquiriesTab />}
+
+          {/* TAB: Messages — 1:1 conversations (HTTP polling for now) */}
+          {activeTab === 'messages' && <MessagesTab />}
+
+          {/* TAB: Visits — property visit requests (visitor + owner views) */}
+          {activeTab === 'visits' && <VisitsTab />}
+
+          {/* TAB: Hostel Requests — super_admin: create hostels & provision owner accounts */}
+          {activeTab === 'hostel-requests' && user.role === 'super_admin' && (
+            <HostelRequestsTab hostelList={hostelList} refetchHostelList={refetchHostelList} />
+          )}
+
+          {/* TAB: Hostel Photos — hostel_admin: categorized photo gallery */}
+          {activeTab === 'hostel-photos' && user.role === 'hostel_admin' && (
+            <HostelPhotosSection propertyId={hostelPropertyId} />
           )}
 
           </main>

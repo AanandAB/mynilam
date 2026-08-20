@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Send, User as UserIcon } from 'lucide-react'
 import { useAuth } from '@/app/hooks/use-auth'
+import { useChatSocket } from '@/app/hooks/use-chat-socket'
 
 export function MessagesTab() {
   const { data: conversations, isLoading: isLoadingConv } = useConversations()
@@ -67,6 +68,7 @@ function MessageThread({ convId }: { convId: number }) {
   const { user } = useAuth()
   const { data: messages, isLoading } = useConversationMessages(convId)
   const { mutate: sendMessage, isPending } = useSendMessage(convId)
+  const { status: socketStatus } = useChatSocket(convId)
   const [newMessage, setNewMessage] = useState('')
 
   const handleSend = (e: React.FormEvent) => {
@@ -79,6 +81,13 @@ function MessageThread({ convId }: { convId: number }) {
 
   return (
     <>
+      {/* Live connection indicator — green when the WebSocket is open. */}
+      <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+        <span className={`w-2 h-2 rounded-full ${socketStatus === 'open' ? 'bg-emerald-500' : socketStatus === 'connecting' ? 'bg-amber-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          {socketStatus === 'open' ? 'Live' : socketStatus === 'connecting' ? 'Connecting…' : 'Offline'}
+        </span>
+      </div>
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {isLoading ? (
           <div className="flex justify-center p-4">

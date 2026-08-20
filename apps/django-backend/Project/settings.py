@@ -33,6 +33,9 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', defaul
 # Application definition
 
 INSTALLED_APPS = [
+    # `daphne` must be listed first so `runserver` uses the ASGI (WebSocket-capable)
+    # server instead of the plain WSGI dev server.
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,6 +47,9 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "drf_spectacular",
+    "channels",
+    "django_celery_beat",
+    "django_celery_results",
     
     # Apps
     'core',
@@ -86,6 +92,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Project.wsgi.application'
+ASGI_APPLICATION = 'Project.asgi.application'
 
 
 # Database
@@ -169,6 +176,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    # Auto-generate OpenAPI schemas from DRF serializers/views (drf-spectacular).
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# drf-spectacular settings (used by /api/schema/ endpoints)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'MyNilam (Rentel) API',
+    'DESCRIPTION': 'Real-estate & hostel management platform API.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 from datetime import timedelta
@@ -211,3 +228,39 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https:\/\/.*\.vercel\.app$",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+
+# ---------------------------------------------------------------------------
+# Django Channels (WebSockets) + Celery (background tasks) — the real-time layer.
+# ---------------------------------------------------------------------------
+
+# Channel layer transport. Local dev defaults to the in-memory layer so
+# WebSockets work without Redis; set USE_IN_MEMORY_CHANNEL_LAYER=false (and point
+# REDIS_URL at a running Redis) for a multi-process / production setup.
+USE_IN_MEMORY_CHANNEL_LAYER = config('USE_IN_MEMORY_CHANNEL_LAYER', default=True, cast=bool)
+REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+
+if USE_IN_MEMORY_CHANNEL_LAYER:
+    CHANNEL_LAYERS = {
+        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [REDIS_URL]},
+        },
+    }
+
+# Celery — Redis is the broker; results are stored in Django's DB (via
+# django_celery_results). Local dev runs tasks inline (eager) so no worker or
+# broker is required; set CELERY_TASK_ALWAYS_EAGER=false to use a real worker.
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=True, cast=bool)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
