@@ -104,7 +104,7 @@ class InquiryCreateView(APIView):
         
         property_id = request.data.get("property_id")
         message = request.data.get("message")
-        phone = request.data.get("phone")
+        phone = request.data.get("phone") or request.data.get("phone_number")
         
         if not property_id or not message:
             return Response({
@@ -197,11 +197,13 @@ class InquiryAcceptView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def serialize_review(review):
+    reviewer_name = f"{review.reviewer.first_name} {review.reviewer.last_name}".strip()
     return {
         "id": str(review.id),
         "reviewer": {
             "id": str(review.reviewer.id),
-            "name": f"{review.reviewer.first_name} {review.reviewer.last_name}".strip(),
+            "full_name": reviewer_name,
+            "name": reviewer_name,
             "avatar_url": review.reviewer.profile_image_url,
         },
         "overall_rating": review.overall_rating,
@@ -230,11 +232,15 @@ class PropertyReviewListView(APIView):
         
         data = [serialize_review(r) for r in reviews]
         
+        # Match the frontend API type: { reviews: [...], rating_summary: { average_rating, total_reviews } }
         return Response({
             "success": True,
-            "data": data,
-            "meta": {
-                "stats": stats
+            "data": {
+                "reviews": data,
+                "rating_summary": {
+                    "average_rating": stats.get('avg_rating', 0),
+                    "total_reviews": stats.get('count', 0),
+                },
             },
             "message": "Reviews retrieved successfully",
         }, status=status.HTTP_200_OK)

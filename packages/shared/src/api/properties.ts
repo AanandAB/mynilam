@@ -23,6 +23,15 @@ export interface PropertyFilters {
     laundry_available?: boolean
     user_id?: string
     is_published?: boolean
+    // --- PRD §4.2 / §4.3: filters + sort ---
+    sort?: string
+    furnishing?: string
+    min_area?: number
+    max_area?: number
+    verified?: boolean
+    tenant_type?: string
+    availability?: string
+    added_within?: string
 }
 
 class PropertiesApi {
@@ -207,14 +216,16 @@ class PropertiesApi {
             return newProperty
         }
 
-        // Real API call
+        // Real API call — build multipart FormData. Arrays (File[] for images/videos,
+        // string[] for furniture_list/security_features) are appended one entry per
+        // item so the backend's ListField receives a real list; scalar values are
+        // stringified (DRF coerces numbers and booleans back from their string form).
         const formData = new FormData()
         Object.entries(data).forEach(([key, value]) => {
-            if (key === 'images' && Array.isArray(value)) {
-                value.forEach((file: File) => {
-                    formData.append('images', file)
-                })
-            } else if (value !== undefined && value !== null) {
+            if (value === undefined || value === null) return
+            if (Array.isArray(value)) {
+                value.forEach((item: unknown) => formData.append(key, item as Blob | string))
+            } else {
                 formData.append(key, String(value))
             }
         })

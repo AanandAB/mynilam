@@ -35,7 +35,7 @@ from django.utils import timezone
 
 from accounts.models import Role, UserRole
 from geo.models import Area, City, Country, District, Locality, State
-from properties.models import Property, PropertyType
+from properties.models import Property, PropertyType, HostelConfig, HostelRoom, HostelBed, PropertyMedia
 from leases.models import LeaseApplication, LeaseContract, LeaseInvoice, LeasePayment
 from maintenance.models import MaintenanceCategory, MaintenanceRequest
 from communications.models import (
@@ -71,6 +71,12 @@ class Command(BaseCommand):
 
         # Properties are always (re)seeded so new Kochi listings + coordinates land.
         properties = self._seed_properties(users['landlord'], geo)
+
+        # Always seed hostel configs (idempotent)
+        self._seed_hostel_configs(properties)
+
+        # Always seed property media (idempotent)
+        self._seed_property_media(properties)
 
         # Relational data is created once (guarded by an existing contract).
         if LeaseContract.objects.exists():
@@ -449,6 +455,187 @@ class Command(BaseCommand):
             defaults={'message': 'Is the villa pet-friendly?', 'phone': '9876543210'},
         )
         self.stdout.write('  Communications: 2 conversations + messages, 2 notifications, 1 review, 1 favorite, 1 saved search, 1 inquiry.')
+
+    # ------------------------------------------------------------------
+    # Hostel / PG configs with rooms and beds
+    # ------------------------------------------------------------------
+    def _seed_hostel_configs(self, props):
+        hostel_props = {
+            'city_hostel': {
+                'hostel_name': 'City Nest Hostel — Koramangala',
+                'gender_type': 'boys',
+                'total_bed_spaces': 80,
+                'total_rooms': 25,
+                'sharings': ['1', '2', '3'],
+                'wifi_enabled': True, 'wifi_speed': '100 Mbps',
+                'hot_water': True, 'water_filter': True,
+                'mess_food': True, 'laundry_enabled': True,
+                'ac_available': True, 'vacant_beds': 28,
+                'price_monthly': 7000,
+            },
+            'palarivattom_pg': {
+                'hostel_name': 'Palarivattom PG Deluxe',
+                'gender_type': 'unisex',
+                'total_bed_spaces': 60,
+                'total_rooms': 20,
+                'sharings': ['1', '2', '3'],
+                'wifi_enabled': True, 'wifi_speed': '50 Mbps',
+                'hot_water': True, 'water_filter': True,
+                'mess_food': True, 'laundry_enabled': False,
+                'ac_available': True, 'vacant_beds': 18,
+                'price_monthly': 7500,
+            },
+            'lakeview': {
+                'hostel_name': 'Lakeview PG — Maradu',
+                'gender_type': 'unisex',
+                'total_bed_spaces': 40,
+                'total_rooms': 15,
+                'sharings': ['1', '2'],
+                'wifi_enabled': True, 'wifi_speed': '50 Mbps',
+                'hot_water': True, 'water_filter': True,
+                'mess_food': False, 'laundry_enabled': False,
+                'ac_available': False, 'vacant_beds': 12,
+                'price_monthly': 8500,
+            },
+        }
+        for key, cfg in hostel_props.items():
+            prop = props.get(key)
+            if not prop:
+                continue
+            hostel_config, created = HostelConfig.objects.get_or_create(
+                property=prop,
+                defaults={
+                    'hostel_name': cfg['hostel_name'],
+                    'total_bed_spaces': cfg['total_bed_spaces'],
+                    'total_rooms': cfg['total_rooms'],
+                    'bathroom_count': cfg['total_rooms'] // 2,
+                    'attached_bathrooms': True,
+                    'gender_type': cfg['gender_type'],
+                    'sharings': cfg['sharings'],
+                    'wifi_enabled': cfg['wifi_enabled'],
+                    'wifi_speed': cfg['wifi_speed'],
+                    'hot_water': cfg['hot_water'],
+                    'water_filter': cfg['water_filter'],
+                    'mess_food': cfg['mess_food'],
+                    'laundry_enabled': cfg['laundry_enabled'],
+                    'ac_available': cfg['ac_available'],
+                    'water_source': 'municipal',
+                    'vacant_beds': cfg['vacant_beds'],
+                    'vacant_rooms': cfg['total_rooms'] // 4,
+                    'price_monthly': Decimal(str(cfg['price_monthly'])),
+                    'hostel_pricing': [
+                        {'share': '1', 'rate': cfg['price_monthly'] * 1.8},
+                        {'share': '2', 'rate': cfg['price_monthly'] * 1.3},
+                        {'share': '3', 'rate': cfg['price_monthly']},
+                    ],
+                    'landmark': prop.landmark,
+                    'street_address': prop.address_line_1,
+                    'parking': 'bike',
+                    'preferred_tenant': 'bachelors',
+                },
+            )
+
+            # Create rooms with beds (only if no rooms exist yet)
+            if not hostel_config.rooms.exists():
+                sharing_types = cfg['sharings']
+                for floor in range(1, 4):
+                    for room_num in range(1, 7):
+                        stype = sharing_types[room_num % len(sharing_types)]
+                        is_ac = room_num % 3 == 0
+                        room = HostelRoom.objects.create(
+                            hostel_config=hostel_config,
+                            room_number=f'{floor}{room_num:02d}',
+                            floor_number=floor,
+                            sharing_type=stype,
+                            monthly_rate=Decimal(str(cfg['price_monthly'])) * (Decimal('1.2') if is_ac else Decimal('1.0')),
+                            is_ac=is_ac,
+                            has_attached_bathroom=floor > 1,
+                        )
+                        bed_count = int(stype) if stype.isdigit() else 4
+                        for b in range(bed_count):
+                            HostelBed.objects.create(
+                                room=room,
+                                bed_name=f'Bed {chr(65 + b)}',
+                                bed_status='Vacant' if b < bed_count - 1 else 'Occupied',
+                            )
+                self.stdout.write(f'    [HOSTEL] {cfg["hostel_name"]}: {hostel_config.total_rooms} rooms, {cfg["total_bed_spaces"]} beds')
+            else:
+                self.stdout.write(f'    [SKIP] Hostel config exists: {cfg["hostel_name"]}')
+
+    # ------------------------------------------------------------------
+    # Property media (images)
+    # ------------------------------------------------------------------
+    def _seed_property_media(self, props):
+        IMAGES = {
+            'sunset': [
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
+                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
+            ],
+            'green_view': [
+                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
+                'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
+            ],
+            'city_hostel': [
+                'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800',
+                'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800',
+                'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800',
+            ],
+            'lakeview': [
+                'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800',
+                'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800',
+            ],
+            'orchid': [
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
+            ],
+            'infopark_studio': [
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
+            ],
+            'edappally_tower': [
+                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
+            ],
+            'vytilla_share': [
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+            ],
+            'palarivattom_pg': [
+                'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800',
+                'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800',
+            ],
+            'fort_kochi_villa': [
+                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
+                'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+            ],
+            'kaloor_studio': [
+                'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
+            ],
+            'panampilly_lux': [
+                'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
+                'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+            ],
+            'thrippunithura_villa': [
+                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
+                'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
+            ],
+        }
+        count = 0
+        for key, images in IMAGES.items():
+            prop = props.get(key)
+            if not prop:
+                continue
+            if prop.media.exists():
+                continue
+            for i, url in enumerate(images):
+                PropertyMedia.objects.create(
+                    property=prop,
+                    media_type='Image',
+                    media_url=url,
+                    sort_order=i,
+                    is_primary=(i == 0),
+                )
+                count += 1
+        self.stdout.write(f'  Property media: {count} images added.')
 
     # ------------------------------------------------------------------
     # Location-unlock touch-up (idempotent)

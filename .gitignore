@@ -41,3 +41,6 @@ apps/django-backend/staticfiles/
 # OS
 .DS_Store
 Thumbs.db
+
+# graphify codebase knowledge graph (regenerable via `graphify extract . --code-only`)
+graphify-out/

@@ -90,7 +90,25 @@ class Property(CommonModel):
     currency_code = models.CharField(max_length=3)
     rent_frequency = models.CharField(max_length=20, choices=RENT_FREQUENCY_CHOICES, null=True, blank=True)
     security_deposit = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
-    
+
+    # --- Post-ad extras (PRD §6) -------------------------------------------------
+    # A nearby landmark helps renters locate the property ("near Lulu Mall").
+    landmark = models.CharField(max_length=300, null=True, blank=True)
+
+    # When True, the lister's contact details are public on the listing.
+    # When False, they are only revealed after the lister accepts an enquiry.
+    show_contact_details = models.BooleanField(default=False)
+    # Optional custom contact identity; falls back to the owner's profile when blank.
+    contact_name = models.CharField(max_length=200, null=True, blank=True)
+    contact_phone = models.CharField(max_length=20, null=True, blank=True)
+
+    # Catch-all for the many free-form listing fields (furniture list, water source,
+    # power backup, parking, security features, tenant/gender preference, hostel/PG
+    # sharing + food/wifi/ac/laundry, total rooms) that don't warrant a dedicated
+    # column. Kept as a single JSON document so the model stays lean while the
+    # posting form round-trips everything it collects.
+    specs = models.JSONField(default=dict, blank=True)
+
     available_from = models.DateField()
     min_lease_duration_months = models.IntegerField(null=True, blank=True)
     max_lease_duration_months = models.IntegerField(null=True, blank=True)

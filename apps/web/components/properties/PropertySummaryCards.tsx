@@ -40,43 +40,43 @@ export function PropertySummaryCards({ property }: PropertySummaryCardsProps) {
       label: 'Property Type',
       value: property.property_type?.toUpperCase() || 'HOSTEL',
       icon: Building2,
-      color: 'text-indigo-600 dark:text-indigo-400',
-      bg: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-900/50',
+      iconBg: 'var(--primary-light)',
+      iconColor: 'var(--primary)',
     },
     {
       label: isHostelOrPg ? 'Total Beds' : 'Bedrooms',
       value: bedsText,
       icon: BedDouble,
-      color: 'text-blue-600 dark:text-blue-400',
-      bg: 'bg-blue-50 dark:bg-blue-950/40 border-blue-100 dark:border-blue-900/50',
+      iconBg: 'rgba(59,130,246,0.1)',
+      iconColor: '#2563eb',
     },
     {
       label: isHostelOrPg ? 'Total Rooms' : 'Bathrooms',
       value: roomsText,
       icon: DoorClosed,
-      color: 'text-emerald-600 dark:text-emerald-400',
-      bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-900/50',
+      iconBg: 'rgba(16,185,129,0.1)',
+      iconColor: '#10b981',
     },
     {
       label: 'Sharing Occupancy',
       value: formatSharing(property.sharing_occupancy),
       icon: Users,
-      color: 'text-purple-600 dark:text-purple-400',
-      bg: 'bg-purple-50 dark:bg-purple-950/40 border-purple-100 dark:border-purple-900/50',
+      iconBg: 'rgba(139,92,246,0.1)',
+      iconColor: '#7c3aed',
     },
     {
       label: 'Gender Preference',
       value: formatGender(property.preferred_gender),
       icon: UserCheck,
-      color: 'text-amber-600 dark:text-amber-400',
-      bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-100 dark:border-amber-900/50',
+      iconBg: 'rgba(245,158,11,0.1)',
+      iconColor: '#d97706',
     },
     {
       label: 'Availability',
-      value: property.num_beds && property.num_beds > 0 ? `🟢 ${property.num_beds} Beds Left` : '🟢 Available Now',
+      value: property.num_beds && property.num_beds > 0 ? `${property.num_beds} Beds Left` : 'Available Now',
       icon: CheckCircle2,
-      color: 'text-teal-600 dark:text-teal-400',
-      bg: 'bg-teal-50 dark:bg-teal-950/40 border-teal-100 dark:border-teal-900/50',
+      iconBg: 'var(--primary-light)',
+      iconColor: 'var(--primary)',
     },
   ]
 
@@ -87,18 +87,19 @@ export function PropertySummaryCards({ property }: PropertySummaryCardsProps) {
         return (
           <div
             key={idx}
-            className={`p-4 rounded-2xl border ${card.bg} flex flex-col justify-between space-y-3 transition-transform hover:-translate-y-0.5 duration-200 shadow-2xs`}
+            className="p-4 rounded-2xl border flex flex-col justify-between space-y-3 transition-transform hover:-translate-y-0.5 duration-200 shadow-sm"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border-color)' }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                 {card.label}
               </span>
-              <div className={`p-2 rounded-xl bg-white/80 dark:bg-slate-900/80 shadow-2xs ${card.color}`}>
-                <IconComponent className="w-4 h-4" />
+              <div className="p-2 rounded-xl shadow-sm" style={{ background: card.iconBg }}>
+                <IconComponent className="w-4 h-4" style={{ color: card.iconColor }} />
               </div>
             </div>
             <div>
-              <p className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-100 line-clamp-1">
+              <p className="text-sm sm:text-base font-extrabold line-clamp-1" style={{ color: 'var(--text-primary)' }}>
                 {card.value}
               </p>
             </div>

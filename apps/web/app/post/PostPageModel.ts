@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCreateProperty } from '@/app/hooks/use-properties'
 import { useAuth } from '@/app/hooks/use-auth'
+import { compressImages, validateImages, formatBytesExport } from '@/utils/image-compression'
 import type { CreatePropertyInput, PropertyType, ListingType } from '@repo/shared'
 
 export type Step = 1 | 2 | 3 | 4 | 5
@@ -34,6 +35,18 @@ export function usePostPageModel() {
   const [city, setCity] = useState('')
   const [state, setState] = useState('')
   const [zipCode, setZipCode] = useState('')
+  const [landmark, setLandmark] = useState('')
+  // Map pin (set via the Leaflet picker); null = not chosen yet.
+  const [latitude, setLatitude] = useState<number | null>(null)
+  const [longitude, setLongitude] = useState<number | null>(null)
+  const [showMap, setShowMap] = useState(false)
+  // Advance / security deposit (rentals).
+  const [securityDeposit, setSecurityDeposit] = useState('')
+  // Contact visibility (PRD §6 step 4). `useProfileContact` mirrors "sync with profile".
+  const [showContactDetails, setShowContactDetails] = useState(false)
+  const [useProfileContact, setUseProfileContact] = useState(true)
+  const [contactName, setContactName] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
   const [images, setImages] = useState<File[]>([])
   
   // Advanced specs
@@ -75,6 +88,47 @@ export function usePostPageModel() {
     }
   }, [user, isAuthLoading, router])
 
+  // Image compression state
+  const [isCompressing, setIsCompressing] = useState(false)
+  const [compressionProgress, setCompressionProgress] = useState({ completed: 0, total: 0 })
+  const [imageErrors, setImageErrors] = useState<string[]>([])
+
+  const processFiles = useCallback(async (newFiles: File[]) => {
+    setImageErrors([])
+    
+    // Validate
+    const validationErrors = validateImages(newFiles)
+    if (validationErrors.length > 0) {
+      setImageErrors(validationErrors.map(e => e.message))
+      return
+    }
+    
+    // Compress
+    setIsCompressing(true)
+    setCompressionProgress({ completed: 0, total: newFiles.length })
+    
+    try {
+      const results = await compressImages(newFiles, (completed, total) => {
+        setCompressionProgress({ completed, total })
+      })
+      
+      const compressedFiles = results.map(r => r.file)
+      setImages(prev => {
+        const combined = [...prev, ...compressedFiles]
+        if (combined.length > 10) {
+          setImageErrors([`Maximum 10 images allowed. You have ${combined.length}.`])
+          return combined.slice(0, 10)
+        }
+        return combined
+      })
+    } catch (err) {
+      setImageErrors(['Failed to process images. Please try again.'])
+    } finally {
+      setIsCompressing(false)
+      setCompressionProgress({ completed: 0, total: 0 })
+    }
+  }, [])
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -91,14 +145,14 @@ export function usePostPageModel() {
     setDragActive(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFiles = Array.from(e.dataTransfer.files)
-      setImages(prev => [...prev, ...droppedFiles])
+      processFiles(droppedFiles)
     }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFiles = Array.from(e.target.files)
-      setImages(prev => [...prev, ...selectedFiles])
+      processFiles(selectedFiles)
     }
   }
 
@@ -121,6 +175,15 @@ export function usePostPageModel() {
         city,
         state,
         zip_code: zipCode || undefined,
+        landmark: landmark || undefined,
+        latitude: latitude ?? undefined,
+        longitude: longitude ?? undefined,
+        security_deposit: securityDeposit ? Number(securityDeposit) : undefined,
+        // Contact visibility: when "sync with profile" is on, omit the custom
+        // name/number so the backend falls back to the owner's profile identity.
+        show_contact_details: showContactDetails,
+        contact_name: useProfileContact ? undefined : (contactName || undefined),
+        contact_phone: useProfileContact ? undefined : (contactPhone || undefined),
         images,
         videos: videos.length > 0 ? videos : undefined,
         total_rooms: totalRooms ? Number(totalRooms) : undefined,
@@ -177,6 +240,24 @@ export function usePostPageModel() {
     setState,
     zipCode,
     setZipCode,
+    landmark,
+    setLandmark,
+    latitude,
+    setLatitude,
+    longitude,
+    setLongitude,
+    showMap,
+    setShowMap,
+    securityDeposit,
+    setSecurityDeposit,
+    showContactDetails,
+    setShowContactDetails,
+    useProfileContact,
+    setUseProfileContact,
+    contactName,
+    setContactName,
+    contactPhone,
+    setContactPhone,
     images,
     setImages,
     totalRooms,
@@ -224,6 +305,9 @@ export function usePostPageModel() {
     handleFileChange,
     handleAdSubmit,
     isPending: createPropertyMutation.isPending,
+    isCompressing,
+    compressionProgress,
+    imageErrors,
     user,
     isAuthLoading,
     router

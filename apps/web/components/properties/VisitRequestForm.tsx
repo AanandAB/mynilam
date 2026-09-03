@@ -28,7 +28,7 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
   const [notes, setNotes] = useState('')
 
   if (user?.id === ownerId) {
-    return null // Don't show to owner
+    return null
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,7 +37,6 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
       router.push('/login')
       return
     }
-
     if (!date || !selectedTimeSlot) return
 
     requestVisit({
@@ -50,20 +49,19 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
 
   if (isSuccess) {
     return (
-      <div className="bg-emerald-50 dark:bg-emerald-950/40 p-6 rounded-3xl border border-emerald-200 dark:border-emerald-900/60 text-center space-y-3 shadow-sm animate-fade-in">
-        <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 className="w-7 h-7" />
+      <div className="p-6 rounded-2xl text-center space-y-3 animate-fade-in" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)' }}>
+        <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto" style={{ background: 'rgba(16,185,129,0.12)' }}>
+          <CheckCircle2 className="w-7 h-7" style={{ color: '#10b981' }} />
         </div>
-        <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-lg">Visit Scheduled!</h4>
-        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-          Your visit request for <span className="font-semibold text-emerald-700 dark:text-emerald-300">{date}</span> at{' '}
-          <span className="font-semibold text-emerald-700 dark:text-emerald-300">{selectedTimeSlot}</span> has been submitted for owner confirmation.
+        <h4 className="font-extrabold text-lg" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Visit Scheduled!</h4>
+        <p className="text-xs leading-relaxed max-w-xs mx-auto" style={{ color: 'var(--text-muted)' }}>
+          Your visit request for <span className="font-semibold" style={{ color: 'var(--primary)' }}>{date}</span> at{' '}
+          <span className="font-semibold" style={{ color: 'var(--primary)' }}>{selectedTimeSlot}</span> has been submitted for owner confirmation.
         </p>
       </div>
     )
   }
 
-  // Get tomorrow's date as min date
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   const minDate = tomorrow.toISOString().split('T')[0]
@@ -73,38 +71,39 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-5"
+      className="p-6 rounded-2xl space-y-5"
+      style={{ background: 'var(--surface)', border: '1px solid var(--border-color)' }}
     >
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <CalendarIcon className="w-5 h-5 text-indigo-500" />
+      <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid var(--border-color)' }}>
+        <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+          <CalendarIcon className="w-5 h-5" style={{ color: 'var(--primary)' }} />
           Schedule a Visit
         </h3>
-        <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+        <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
           In-Person Tour
         </span>
       </div>
 
       {isGuest ? (
-        <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl text-center space-y-3 border border-slate-100 dark:border-slate-700/60">
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+        <div className="p-5 rounded-2xl text-center space-y-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border-color)' }}>
+          <p className="text-xs leading-relaxed font-medium" style={{ color: 'var(--text-secondary)' }}>
             Log in to schedule an in-person visit tour with the property owner.
           </p>
           <Button
             type="button"
             onClick={() => router.push('/login')}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl py-2.5 shadow-sm"
+            className="w-full text-white font-semibold text-xs rounded-xl py-2.5"
+            style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))' }}
           >
             Login or Register
           </Button>
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Select Date */}
           <div className="space-y-1.5">
-            <label htmlFor="visit-date" className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
-              Select Date <span className="text-red-500">*</span>
+            <label htmlFor="visit-date" className="text-xs font-bold flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+              <CalendarIcon className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+              Select Date <span style={{ color: '#f43f5e' }}>*</span>
             </label>
             <Input
               id="visit-date"
@@ -113,15 +112,15 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
               min={minDate}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-xs rounded-xl cursor-pointer"
+              className="text-xs rounded-xl cursor-pointer"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
             />
           </div>
 
-          {/* Select Time Slot Chips */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              Select Available Time Slot <span className="text-red-500">*</span>
+            <label className="text-xs font-bold flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+              <Clock className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+              Select Available Time Slot <span style={{ color: '#f43f5e' }}>*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
               {TIME_SLOTS.map((slot) => {
@@ -131,11 +130,13 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
                     key={slot}
                     type="button"
                     onClick={() => setSelectedTimeSlot(slot)}
-                    className={`py-2 px-2.5 text-xs font-semibold rounded-xl border transition-all ${
-                      isSelected
-                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm ring-2 ring-indigo-500/30'
-                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500'
-                    }`}
+                    className="py-2 px-2.5 text-xs font-semibold rounded-xl border transition-all"
+                    style={{
+                      background: isSelected ? 'var(--primary)' : 'var(--surface-2)',
+                      borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
+                      color: isSelected ? 'white' : 'var(--text-secondary)',
+                      boxShadow: isSelected ? '0 2px 8px rgba(13,148,136,0.3)' : 'none',
+                    }}
                   >
                     {slot}
                   </button>
@@ -144,10 +145,9 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
             </div>
           </div>
 
-          {/* Visitor Notes */}
           <div className="space-y-1.5">
-            <label htmlFor="visit-notes" className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-slate-400" />
+            <label htmlFor="visit-notes" className="text-xs font-bold flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+              <FileText className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
               Additional Notes (Optional)
             </label>
             <Textarea
@@ -155,18 +155,19 @@ export function VisitRequestForm({ propertyId, ownerId }: { propertyId: string; 
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="E.g., I would like to see double sharing rooms on ground floor..."
-              className="h-20 resize-none bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-xs rounded-xl leading-relaxed"
+              className="h-20 resize-none text-xs rounded-xl leading-relaxed"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
             />
           </div>
 
-          {/* Submit Button */}
           <Button
             type="submit"
             disabled={isSubmitDisabled}
             aria-label="Request visit schedule"
-            className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all ${
-              isSubmitDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'hover:shadow-indigo-500/20'
+            className={`w-full text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all ${
+              isSubmitDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
             }`}
+            style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))' }}
           >
             <Send className="w-4 h-4" />
             {isPending ? 'Submitting Schedule...' : 'Request Visit'}

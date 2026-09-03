@@ -14,7 +14,7 @@ export function ReviewSection({ propertyId }: { propertyId: string }) {
   const [rating, setRating] = useState(5)
   const [body, setBody] = useState('')
 
-  if (isLoading) return <div className="animate-pulse h-32 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
+  if (isLoading) return <div className="animate-pulse h-32 rounded-2xl" style={{ background: 'var(--surface-2)' }} />
 
   const reviews = data?.reviews || []
   const summary = data?.rating_summary
@@ -40,12 +40,12 @@ export function ReviewSection({ propertyId }: { propertyId: string }) {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Reviews & Ratings</h3>
+        <h3 className="text-2xl font-bold" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Reviews & Ratings</h3>
         {summary && summary.total_reviews > 0 && (
           <div className="flex items-center space-x-2">
             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
             <span className="text-lg font-bold">{summary.average_rating.toFixed(1)}</span>
-            <span className="text-slate-500">({summary.total_reviews} reviews)</span>
+            <span style={{ color: 'var(--text-muted)' }}>({summary.total_reviews} reviews)</span>
           </div>
         )}
       </div>
@@ -63,8 +63,8 @@ export function ReviewSection({ propertyId }: { propertyId: string }) {
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl space-y-4">
-          <h4 className="font-semibold text-slate-800 dark:text-slate-200">Leave your review</h4>
+        <form onSubmit={handleSubmit} className="p-6 rounded-2xl space-y-4" style={{ background: 'var(--surface-2)', border: '1px solid var(--border-color)' }}>
+          <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Leave your review</h4>
           <div className="flex space-x-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <button type="button" key={star} onClick={() => setRating(star)}>
@@ -76,7 +76,7 @@ export function ReviewSection({ propertyId }: { propertyId: string }) {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Tell us about your experience..."
-            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none resize-none h-24"
+            className="w-full p-3 rounded-xl outline-none resize-none h-24" style={{ background: 'var(--surface)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
             required
           />
           {error && (
@@ -85,7 +85,7 @@ export function ReviewSection({ propertyId }: { propertyId: string }) {
             </p>
           )}
           <div className="flex space-x-2">
-            <Button type="submit" disabled={isPending || !body.trim()} className="bg-indigo-600 hover:bg-indigo-700">
+            <Button type="submit" disabled={isPending || !body.trim()} style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', color: 'white' }}>
               {isPending ? 'Submitting...' : 'Submit Review'}
             </Button>
             <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setBody(''); }}>Cancel</Button>
@@ -95,18 +95,18 @@ export function ReviewSection({ propertyId }: { propertyId: string }) {
 
       <div className="space-y-4">
         {reviews.length === 0 ? (
-          <p className="text-slate-500 italic">No reviews yet.</p>
+          <p className="italic" style={{ color: 'var(--text-muted)' }}>No reviews yet.</p>
         ) : (
           reviews.map((review) => (
-            <div key={review.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 space-y-3">
+            <div key={review.id} className="p-5 rounded-2xl shadow-sm space-y-3" style={{ background: 'var(--surface)', border: '1px solid var(--border-color)' }}>
               <div className="flex justify-between items-start">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
                     <UserIcon className="w-5 h-5" />
                   </div>
                   <div>
                     <h5 className="font-semibold text-sm">{review.reviewer.full_name}</h5>
-                    <span className="text-xs text-slate-500">{new Date(review.created_at).toLocaleDateString()}</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(review.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div className="flex">
@@ -115,7 +115,7 @@ export function ReviewSection({ propertyId }: { propertyId: string }) {
                   ))}
                 </div>
               </div>
-              <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">{review.body}</p>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{review.body}</p>
             </div>
           ))
         )}

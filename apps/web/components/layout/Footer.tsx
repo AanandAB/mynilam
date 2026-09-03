@@ -4,82 +4,82 @@ import { Home, Mail, ArrowRight } from 'lucide-react'
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="w-full px-4 py-8 mt-auto">
-      <div className="max-w-7xl mx-auto bg-slate-950/95 dark:bg-slate-950/95 text-gray-400 backdrop-blur-2xl border-2 border-black dark:border-slate-600 rounded-3xl p-8 sm:p-12 shadow-2xl shadow-slate-950/40 animate-island-float hover:border-indigo-500/50 transition-all duration-300">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+    <footer className="w-full bg-white dark:bg-[#111b2e] border-t border-border-light dark:border-white/10 mt-auto">
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           
-          {/* Brand Col */}
-          <div className="lg:col-span-2 space-y-6">
-            <Link href="/" className="flex items-center space-x-2 text-white">
-              <div className="p-2 bg-indigo-600 rounded-xl">
-                <Home className="h-5 w-5" />
+          {/* Brand */}
+          <div className="space-y-5">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="w-9 h-9 bg-brand rounded-xl flex items-center justify-center text-white">
+                <Home className="h-[18px] w-[18px]" />
               </div>
-              <span className="text-lg font-bold">MyNilam</span>
+              <span className="text-lg font-bold text-navy dark:text-white">
+                My<span className="text-brand">Nilam</span>
+              </span>
             </Link>
-            <p className="text-sm max-w-sm leading-relaxed">
-              Find, rent, or buy your next property with ease. A modern real-estate marketplace offering apartments, flats, villas, plots, and roommate listings.
+            <p className="text-[13px] text-navy-500 leading-relaxed max-w-xs">
+              Find, rent, or buy your next property with ease. A premium marketplace for apartments, PGs, hostels, and co-living spaces.
             </p>
-            <form className="flex max-w-sm">
-              <div className="relative w-full">
-                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-gray-500" />
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  className="w-full bg-gray-900/80 border border-gray-800 rounded-xl py-2.5 pl-11 pr-12 text-sm text-white focus:outline-none focus:border-indigo-600 placeholder-gray-500"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-1.5 top-1.5 p-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </form>
+            <div className="relative max-w-xs">
+              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-navy-400 dark:text-slate-500" />
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="w-full h-10 pl-10 pr-10 bg-surface-soft dark:bg-white/5 border border-border dark:border-white/10 rounded-xl text-[13px] text-navy dark:text-slate-200 placeholder:text-navy-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-brand transition-all"
+              />
+              <button type="submit" className="absolute right-1.5 top-1.5 w-7 h-7 bg-brand hover:bg-brand-dark text-white rounded-lg flex items-center justify-center transition-colors">
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Links Cols */}
+          {/* Explore */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-6">Explore</h4>
-            <ul className="space-y-4 text-sm">
-              <li><Link href="/" className="hover:text-white transition-colors">Buy Properties</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Rent Properties</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Roommate Search</Link></li>
-              <li><Link href="/settings" className="hover:text-white transition-colors">Premium Listings</Link></li>
+            <h4 className="text-[12px] font-bold text-navy dark:text-white uppercase tracking-wider mb-5">Explore</h4>
+            <ul className="space-y-3">
+              {['Buy Properties', 'Rent Properties', 'Roommate Search', 'Premium Listings'].map((item) => (
+                <li key={item}>
+                  <Link href="/" className="text-[13px] text-navy-500 dark:text-slate-400 hover:text-brand transition-colors">{item}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
+          {/* Company */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-6">Company</h4>
-            <ul className="space-y-4 text-sm">
-              <li><Link href="/" className="hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Careers</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Press</Link></li>
+            <h4 className="text-[12px] font-bold text-navy dark:text-white uppercase tracking-wider mb-5">Company</h4>
+            <ul className="space-y-3">
+              {['About Us', 'Careers', 'Blog', 'Press'].map((item) => (
+                <li key={item}>
+                  <Link href="/" className="text-[13px] text-navy-500 dark:text-slate-400 hover:text-brand transition-colors">{item}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
+          {/* Support */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-6">Support</h4>
-            <ul className="space-y-4 text-sm">
-              <li><Link href="/" className="hover:text-white transition-colors">Help Center</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Contact Safety</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Terms of Service</Link></li>
+            <h4 className="text-[12px] font-bold text-navy dark:text-white uppercase tracking-wider mb-5">Support</h4>
+            <ul className="space-y-3">
+              {['Help Center', 'Contact Safety', 'Privacy Policy', 'Terms of Service'].map((item) => (
+                <li key={item}>
+                  <Link href="/" className="text-[13px] text-navy-500 dark:text-slate-400 hover:text-brand transition-colors">{item}</Link>
+                </li>
+              ))}
             </ul>
-          </div>
-
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800/80 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} MyNilam. All rights reserved.</p>
-          <div className="flex space-x-6 mt-4 sm:mt-0">
-            <Link href="/" className="hover:text-gray-400">Facebook</Link>
-            <Link href="/" className="hover:text-gray-400">Twitter</Link>
-            <Link href="/" className="hover:text-gray-400">Instagram</Link>
           </div>
         </div>
 
+        {/* Bottom */}
+        <div className="border-t border-border-light mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-[12px] text-navy-400">
+          <p className="text-navy-400 dark:text-slate-500">&copy; {new Date().getFullYear()} MyNilam. All rights reserved.</p>
+          <div className="flex gap-5 mt-3 sm:mt-0">
+            {['Facebook', 'Twitter', 'Instagram'].map((s) => (
+              <Link key={s} href="/" className="hover:text-brand transition-colors">{s}</Link>
+            ))}
+          </div>
+        </div>
       </div>
     </footer>
   )

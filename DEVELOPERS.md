@@ -191,3 +191,39 @@ Deploy note: WebSockets need an **ASGI** server. Render's start command should b
 `daphne Project.asgi:application` (or gunicorn with uvicorn workers), NOT plain
 `gunicorn Project.wsgi:application`, and needs a Redis add-on for the channel
 layer + Celery broker.
+
+---
+
+## 10. Codebase knowledge graph (graphify)
+
+The repo is indexed by [graphify](https://github.com/Graphify-Labs/graphify) — a local
+AST-based tool that turns the codebase into a queryable knowledge graph (no vector store,
+no API key for code indexing). It's how you answer "what talks to what?" fast.
+
+Install once:
+
+```bash
+uv tool install graphifyy   # exposes the `graphify` CLI
+```
+
+Build / refresh the graph (from repo root):
+
+```bash
+graphify extract . --code-only     # parse code -> graphify-out/graph.json
+graphify cluster-only . --no-label # -> GRAPH_REPORT.md + graph.html
+graphify update .                  # incremental re-sync after code changes (free)
+```
+
+Query it:
+
+```bash
+graphify god-nodes                 # most-connected architectural hubs
+graphify explain "ChatConsumer"    # node + its neighbors with file:line refs
+graphify path "Property" "LeaseContract"
+graphify affected "Property"       # reverse impact traversal
+graphify query "how does auth work?"
+```
+
+Output lives in `graphify-out/` (gitignored — regenerable): `graph.json`,
+`graph.html` (interactive), `GRAPH_REPORT.md` (god nodes, communities, import cycles,
+knowledge gaps).

@@ -155,22 +155,22 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
 
   if (!hasAnyAmenities) {
     return (
-      <Card className="p-6 text-center space-y-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-        <Sparkles className="w-8 h-8 text-slate-400 mx-auto" />
-        <h4 className="font-bold text-slate-700 dark:text-slate-300">No Specific Amenities Listed</h4>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Please contact the hostel owner to inquire about available facilities.</p>
+      <Card className="p-6 text-center space-y-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border-color)' }}>
+        <Sparkles className="w-8 h-8 mx-auto" style={{ color: 'var(--text-muted)' }} />
+        <h4 className="font-bold" style={{ color: 'var(--text-secondary)' }}>No Specific Amenities Listed</h4>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Please contact the property owner to inquire about available facilities.</p>
       </Card>
     )
   }
 
   return (
-    <Card className="p-6 space-y-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-3xl">
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-500" />
+    <Card className="p-6 space-y-6 rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--border-color)' }}>
+      <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid var(--border-color)' }}>
+        <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+          <Sparkles className="w-5 h-5" style={{ color: 'var(--primary)' }} />
           Amenities & Facilities
         </h3>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50">
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px solid rgba(13,148,136,0.2)' }}>
           Verified Facilities
         </span>
       </div>
@@ -178,7 +178,7 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
       {/* Essentials Section */}
       {activeEssentials.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
             Essential Amenities
           </h4>
           <div className="flex flex-wrap gap-2.5">
@@ -187,12 +187,13 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
               return (
                 <div
                   key={item.key}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shadow-2xs"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold shadow-sm"
+                  style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981' }}
                 >
-                  <div className="p-1 rounded-lg bg-emerald-500 text-white shrink-0">
+                  <div className="p-1 rounded-lg shrink-0" style={{ background: '#10b981', color: 'white' }}>
                     <Check className="w-3 h-3 stroke-[3]" />
                   </div>
-                  <IconComp className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <IconComp className="w-4 h-4 shrink-0" />
                   <span>{item.label}</span>
                 </div>
               )
@@ -203,8 +204,7 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
 
       {/* Comfort & Furnishing Section */}
       {(activeComfort.length > 0 || (property.furniture_list && property.furniture_list.length > 0)) && (
-        <div className="space-y-3 pt-2">
-          <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+        <div className="space-y-3 pt-2">          <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
             Room Comfort & Furnishings
           </h4>
           <div className="flex flex-wrap gap-2.5">
@@ -213,12 +213,13 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
               return (
                 <div
                   key={item.key}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/50 text-indigo-800 dark:text-indigo-300 text-xs font-semibold shadow-2xs"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold shadow-sm"
+                  style={{ background: 'var(--primary-light)', border: '1px solid rgba(13,148,136,0.2)', color: 'var(--primary)' }}
                 >
-                  <div className="p-1 rounded-lg bg-indigo-500 text-white shrink-0">
+                  <div className="p-1 rounded-lg shrink-0" style={{ background: 'var(--primary)', color: 'white' }}>
                     <Check className="w-3 h-3 stroke-[3]" />
                   </div>
-                  <IconComp className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <IconComp className="w-4 h-4 shrink-0" />
                   <span>{item.label}</span>
                 </div>
               )
@@ -227,11 +228,12 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
             {property.furniture_list?.map((furniture, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-medium"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
               >
-                <div className="p-1 rounded-lg bg-slate-400 dark:bg-slate-600 text-white shrink-0">
-                  <Check className="w-3 h-3 stroke-[3]" />
-                </div>
+                <div className="p-1 rounded-lg shrink-0" style={{ background: 'var(--text-muted)', color: 'white' }}>
+                    <Check className="w-3 h-3 stroke-[3]" />
+                  </div>
                 <span>{furniture}</span>
               </div>
             ))}
@@ -242,7 +244,7 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
       {/* Safety & Security Section */}
       {safetyItems.length > 0 && (
         <div className="space-y-3 pt-2">
-          <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
             Security & Protection
           </h4>
           <div className="flex flex-wrap gap-2.5">
@@ -251,9 +253,10 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
               return (
                 <div
                   key={item.key}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/50 text-amber-900 dark:text-amber-300 text-xs font-semibold shadow-2xs"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold shadow-sm"
+                  style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#b45309' }}
                 >
-                  <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: '#d97706' }} />
                   <span>{item.label}</span>
                 </div>
               )
@@ -265,7 +268,7 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
       {/* House Rules & Features */}
       {rules.length > 0 && (
         <div className="space-y-3 pt-2">
-          <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
             Property Guidelines & Parking
           </h4>
           <div className="flex flex-wrap gap-2.5">
@@ -274,9 +277,10 @@ export function AmenitiesBadges({ property }: AmenitiesBadgesProps) {
               return (
                 <div
                   key={rule.key}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-medium"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
                 >
-                  <IconComp className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <IconComp className="w-4 h-4 shrink-0" style={{ color: 'var(--primary)' }} />
                   <span>{rule.label}</span>
                 </div>
               )

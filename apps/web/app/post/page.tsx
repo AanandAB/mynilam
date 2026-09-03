@@ -7,9 +7,17 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { 
   ArrowRight, ArrowLeft, Home, Building2, Trees, Briefcase, Users, 
-  Upload, Sparkles, CheckCircle, HelpCircle, DollarSign, MapPin
+  Upload, Sparkles, CheckCircle, HelpCircle, DollarSign, MapPin, AlertCircle, Loader2
 } from 'lucide-react'
 import type { PropertyType } from '@repo/shared'
+import dynamic from 'next/dynamic'
+
+// Leaflet/react-leaflet reference `window` at import time, so the map picker must
+// load client-side only — a static import makes Next.js fail during SSR/prerender.
+const LocationPickerModal = dynamic(
+  () => import('@/components/properties/LocationPickerModal'),
+  { ssr: false }
+)
 
 export default function PostAdPage() {
   const model = usePostPageModel()
@@ -18,7 +26,10 @@ export default function PostAdPage() {
   if (model.isAuthLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin dark:border-indigo-400"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin dark:border-indigo-400" />
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Loading...</p>
+        </div>
       </div>
     )
   }
@@ -77,13 +88,13 @@ export default function PostAdPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 relative">
-      <Card className="shadow-xl p-8 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 rounded-3xl dark:bg-slate-900/60 backdrop-blur-xl space-y-8">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-12 relative">
+      <Card className="shadow-xl p-5 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 rounded-3xl dark:bg-slate-900/60 backdrop-blur-xl space-y-6 sm:space-y-8">
         
         {/* Stepper Header */}
-        <div className="flex items-center justify-between pb-6 border-b border-slate-100 dark:border-slate-800/60">
+        <div className="flex items-center justify-between flex-wrap gap-3 pb-6 border-b border-slate-100 dark:border-slate-800/60">
           <div className="space-y-1">
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Post Advertisement</h1>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Post Advertisement</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">Add listings to search directory instantly</p>
           </div>
           {model.step < 5 && (
@@ -504,10 +515,33 @@ export default function PostAdPage() {
                   onChange={(e) => model.setAddress(e.target.value)}
                   icon={<MapPin className="h-4 w-4" />}
                 />
+                <Input
+                  label="Landmark (optional)"
+                  placeholder="e.g. Near Lulu Mall, opposite metro station"
+                  value={model.landmark}
+                  onChange={(e) => model.setLandmark(e.target.value)}
+                />
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Input label="City" placeholder="Mumbai" value={model.city} onChange={(e) => model.setCity(e.target.value)} />
                   <Input label="State" placeholder="Maharashtra" value={model.state} onChange={(e) => model.setState(e.target.value)} />
                   <Input label="Zip Code" placeholder="400001" value={model.zipCode} onChange={(e) => model.setZipCode(e.target.value)} />
+                </div>
+
+                {/* Exact location pin via Leaflet map picker (PRD §6 "Add Location") */}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => model.setShowMap(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    {model.latitude ? 'Adjust location pin' : 'Pin exact location on map'}
+                  </button>
+                  {model.latitude && (
+                    <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                      Selected: {model.latitude.toFixed(5)}, {model.longitude?.toFixed(5)}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -525,15 +559,104 @@ export default function PostAdPage() {
           </div>
         )}
 
-        {/* STEP 4: IMAGES & VIDEOS UPLOAD */}
+        {/* STEP 4: PRICING, CONTACT & MEDIA UPLOAD */}
         {model.step === 4 && (
           <div className="space-y-6">
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Upload Media Assets</h3>
-            
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Pricing, Contact & Media</h3>
+
+            {/* Pricing & Contact (PRD §6 step 4) */}
+            <div className="p-5 sm:p-6 bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-5">
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80 pb-2">
+                Pricing & Contact Details
+              </h4>
+
+              <Input
+                label="Advance / Security Deposit (INR)"
+                type="number"
+                placeholder="e.g. 50000"
+                value={model.securityDeposit}
+                onChange={(e) => model.setSecurityDeposit(e.target.value)}
+                icon={<DollarSign className="h-4 w-4" />}
+              />
+
+              {/* Sync contact details with profile */}
+              <label className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={model.useProfileContact}
+                  onChange={(e) => model.setUseProfileContact(e.target.checked)}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-800 rounded bg-white dark:bg-slate-900"
+                />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Use same contact details as profile
+                </span>
+              </label>
+
+              {/* Custom contact details — only shown when NOT syncing with profile */}
+              {!model.useProfileContact && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Contact Name"
+                    placeholder="Your name"
+                    value={model.contactName}
+                    onChange={(e) => model.setContactName(e.target.value)}
+                  />
+                  <Input
+                    label="Contact Number"
+                    placeholder="e.g. 98XXXXXXXX"
+                    value={model.contactPhone}
+                    onChange={(e) => model.setContactPhone(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Visibility toggle */}
+              <label className="flex items-center space-x-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={model.showContactDetails}
+                  onChange={(e) => model.setShowContactDetails(e.target.checked)}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-800 rounded bg-white dark:bg-slate-900"
+                />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Show contact details in listing
+                </span>
+              </label>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 -mt-3">
+                When off, your details are only shared after a renter sends an enquiry and you accept it.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Photo Drag Zone */}
               <div className="space-y-3">
                 <span className="block text-xs font-semibold text-slate-505 dark:text-slate-400 uppercase tracking-wider">Property Photos</span>
+                
+                {/* Compression progress */}
+                {model.isCompressing && (
+                  <div className="flex items-center gap-3 p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+                    <Loader2 className="w-4 h-4 text-indigo-600 animate-spin shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300">Compressing images...</p>
+                      <p className="text-[10px] text-indigo-500 dark:text-indigo-400">
+                        {model.compressionProgress.completed} / {model.compressionProgress.total} processed
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Image errors */}
+                {model.imageErrors.length > 0 && (
+                  <div className="space-y-1">
+                    {model.imageErrors.map((err, i) => (
+                      <div key={i} className="flex items-start gap-2 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
+                        <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+                        <p className="text-[11px] font-semibold text-red-600 dark:text-red-400">{err}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 <div
                   onDragEnter={model.handleDrag}
                   onDragOver={model.handleDrag}
@@ -550,7 +673,7 @@ export default function PostAdPage() {
                   </div>
                   <div className="text-center space-y-1">
                     <p className="text-xs font-bold text-slate-900 dark:text-white">Drag & drop photos</p>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500">PNG, JPG, or JPEG (Max 10)</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500">JPEG, PNG, or WebP • Max 5 MB each • Auto-compressed</p>
                   </div>
                   
                   <label className="cursor-pointer inline-flex items-center justify-center font-bold text-[10px] px-3.5 py-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition-all shadow-sm">
@@ -598,7 +721,7 @@ export default function PostAdPage() {
                   </div>
                   <div className="text-center space-y-1">
                     <p className="text-xs font-bold text-slate-900 dark:text-white">Drag & drop videos</p>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500">MP4, MOV, or AVI (Max 2)</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500">MP4, MOV, or AVI • Max 50 MB each • Max 2 videos</p>
                   </div>
                   
                   <label className="cursor-pointer inline-flex items-center justify-center font-bold text-[10px] px-3.5 py-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition-all shadow-sm">
@@ -634,7 +757,7 @@ export default function PostAdPage() {
                       />
                       <button
                         onClick={() => model.setImages(prev => prev.filter((_, i) => i !== idx))}
-                        className="absolute right-1.5 top-1.5 p-1 bg-red-600 hover:bg-red-700 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs font-bold"
+                        className="absolute right-1.5 top-1.5 p-1 bg-red-600 hover:bg-red-700 text-white rounded-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 text-xs font-bold"
                       >
                         Remove
                       </button>
@@ -686,6 +809,19 @@ export default function PostAdPage() {
         )}
 
       </Card>
+
+      {/* Leaflet location picker modal (PRD §6 "Add Location") */}
+      {model.showMap && (
+        <LocationPickerModal
+          initial={[9.9312, 76.2673]} // Kochi, Kerala — sensible default center
+          selected={model.latitude !== null && model.longitude !== null ? [model.latitude, model.longitude] : null}
+          onSelect={(lat, lng) => {
+            model.setLatitude(lat)
+            model.setLongitude(lng)
+          }}
+          onClose={() => model.setShowMap(false)}
+        />
+      )}
     </div>
   )
 }

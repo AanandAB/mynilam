@@ -1,280 +1,324 @@
 'use client'
 
-import React from 'react'
+import { useState, useEffect } from 'react'
 import { useHomepageModel } from './HomepageModel'
 import { PropertyCard } from '@/components/properties/PropertyCard'
 import { PropertyFilters } from '@/components/properties/PropertyFilters'
-import { ArrowUpDown, Sparkles, Building2, Users, CheckCircle, LayoutGrid, List, Map as MapIcon, Compass } from 'lucide-react'
+import { useGeolocation } from '@/app/hooks/use-geolocation'
+import { ArrowUpDown, Building2, Users, CheckCircle, LayoutGrid, List, Map as MapIcon, Compass, LogIn, SlidersHorizontal, ChevronUp, MapPin } from 'lucide-react'
 import { HostelFinder } from '@/components/properties/HostelFinder'
+import { PropertyCardSkeleton } from '@/components/ui/skeleton'
+import { SearchBar } from '@/components/properties/SearchBar'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
 const PropertyMap = dynamic(() => import('@/components/properties/PropertyMap'), {
   ssr: false,
-  loading: () => <div className="w-full h-[600px] animate-pulse bg-slate-100 dark:bg-slate-800 rounded-3xl" />
+  loading: () => <div className="w-full h-[600px] animate-pulse bg-surface-soft rounded-xl" />
 })
 
 export default function HomePage() {
   const model = useHomepageModel()
+  const geo = useGeolocation()
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
 
-  if (model.isAuthLoading) {
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 600)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  if (model.showAuthMessage) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin dark:border-indigo-400"></div>
+      <div className="min-h-[70vh] flex items-center justify-center px-4">              <div className="max-w-md w-full bg-white dark:bg-[#111b2e] rounded-xl border border-border dark:border-white/10 p-8 text-center space-y-6 shadow-card">
+          <div className="w-14 h-14 bg-brand-light rounded-full flex items-center justify-center mx-auto">
+            <LogIn className="h-6 w-6 text-brand" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-navy font-serif">Session Required</h2>
+            <p className="text-sm text-navy-500">Please log in to view properties and listings.</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Link href="/login">
+              <Button className="w-full h-11 bg-brand hover:bg-brand-dark text-white font-semibold rounded-md">Sign In</Button>
+            </Link>
+            <Button variant="outline" onClick={() => model.setShowAuthMessage(false)} className="w-full h-11 font-semibold border-border text-navy-600">Continue as Guest</Button>
+          </div>
+        </div>
       </div>
     )
   }
 
-  if (!model.user || model.user.role === 'hostel_admin') return null
+  if (model.isAuthLoading || !model.authChecked) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-3 border-brand border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-medium text-navy-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (model.user?.role === 'hostel_admin') return null
 
   return (
-    <div className="pb-24 bg-transparent dark:bg-transparent text-slate-800 dark:text-slate-100 min-h-screen relative">
-      
-      {/* 1. High-End Glassmorphic Header Tab Switcher (Sticky at top-[64px]) */}
-      <div className="w-full sticky top-[72px] z-40 py-4 px-4 sm:px-6 transition-all duration-300">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl p-2 rounded-2xl border-2 border-black dark:border-slate-600 flex gap-2 relative shadow-xl shadow-slate-900/10">
-            
-            {/* Tab 1: Properties */}
+    <div className="min-h-screen">
+
+      {/* Tab Switcher */}
+      <div className="w-full bg-white dark:bg-[#111b2e] border-b border-border-light dark:border-white/10 sticky top-[71px] z-40">
+        <div className="max-w-content mx-auto px-4 sm:px-6">
+          <div className="flex gap-1 py-3">
             <button
               type="button"
               onClick={() => model.setActiveMainTab('properties')}
-              className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all duration-300 relative z-10 overflow-hidden ${
+              className={`px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200 ${
                 model.activeMainTab === 'properties'
-                  ? 'text-white shadow-[0_4px_20px_rgba(99,102,241,0.25)]'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-brand-light text-brand'
+                  : 'text-navy-500 hover:text-navy hover:bg-surface-soft'
               }`}
             >
-              {model.activeMainTab === 'properties' && (
-                <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 rounded-xl -z-10 animate-fade-in"></span>
-              )}
-              <Building2 className={`w-4.5 h-4.5 transition-transform duration-350 ${model.activeMainTab === 'properties' ? 'scale-110 rotate-1' : 'group-hover:scale-105'}`} />
-              <span>Properties & Rooms</span>
+              <span className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Properties & Rooms
+              </span>
             </button>
-
-            {/* Tab 2: Hostels */}
             <button
               type="button"
               onClick={() => model.setActiveMainTab('hostels')}
-              className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all duration-300 relative z-10 overflow-hidden ${
+              className={`px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200 ${
                 model.activeMainTab === 'hostels'
-                  ? 'text-white shadow-[0_4px_20px_rgba(147,51,234,0.25)]'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-brand-light text-brand'
+                  : 'text-navy-500 hover:text-navy hover:bg-surface-soft'
               }`}
             >
-              {model.activeMainTab === 'hostels' && (
-                <span className="absolute inset-0 bg-gradient-to-r from-purple-600 via-purple-700 to-pink-700 rounded-xl -z-10 animate-fade-in"></span>
-              )}
-              <Compass className={`w-4.5 h-4.5 transition-transform duration-350 ${model.activeMainTab === 'hostels' ? 'scale-110 rotate-1' : 'group-hover:scale-105'}`} />
-              <span>Hostels & PGs</span>
+              <span className="flex items-center gap-2">
+                <Compass className="w-4 h-4" />
+                Hostels & PGs
+              </span>
             </button>
-
           </div>
         </div>
       </div>
 
-      {/* 2. Content Sections based on Active Tab */}
       {model.activeMainTab === 'properties' ? (
-        <div className="space-y-12">
-          
-          {/* Hero Section: Properties tab */}
-          <section className="bg-white/70 dark:bg-slate-900/70 text-center relative overflow-hidden border border-indigo-500 rounded-2xl shadow-xl py-16 px-6 max-w-7xl mx-auto my-12">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-950/40 via-transparent to-transparent pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="space-y-0">
 
-            <div className="relative z-10 max-w-3xl mx-auto space-y-6">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-indigo-950/80 dark:bg-indigo-900/30 border border-indigo-500/30 text-indigo-300 text-[10px] font-black tracking-widest uppercase mb-1 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-400 fill-indigo-400/20" />
-                Verified Rentals & Co-living
-              </span>
-              <h1 className="text-4xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                Find Your Next Room
+          {/* Hero Section — stats above search so dropdown opens into listings, not stats */}
+          <section className="relative dark:bg-[#0c1222]" style={{ background: 'radial-gradient(circle at 92% 15%, rgba(75,143,135,0.10), transparent 35%), radial-gradient(circle at 4% 80%, rgba(214,154,50,0.06), transparent 28%), var(--bg)' }}>
+            <div className="max-w-content mx-auto px-4 sm:px-6 pt-16 pb-20 text-center">
+              
+              {/* Heading */}
+              <h1 className="text-4xl sm:text-5xl lg:text-[60px] font-serif font-bold text-navy dark:text-white leading-[1.08] tracking-tight mb-6 animate-fade-in-up stagger-1">
+                Find Your Next<br />
+                <span className="bg-gradient-to-r from-brand to-brand-dark bg-clip-text text-transparent">Perfect Room</span>
               </h1>
-              <p className="text-slate-400 text-xs sm:text-base max-w-xl mx-auto leading-relaxed font-semibold">
-                MyNilam connects you to verified premium flats, luxury houses, commercial hubs, and shared roommate spaces with zero hassle.
+
+              {/* Description */}
+              <p className="text-[17px] text-navy-500 dark:text-slate-300 max-w-[640px] mx-auto leading-relaxed mb-10 animate-fade-in-up stagger-2">
+                PGs, hostels, co-living spaces and private rooms — discover curated, verified listings in your city.
               </p>
-            </div>
-            
-            {/* Quick Metrics */}
-            <div className="relative z-10 mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-5xl mx-auto px-4">
-              {[
-                { icon: Building2, label: 'Listed Units', value: '1,200+' },
-                { icon: Users, label: 'Matched Flatmates', value: '500+' },
-                { icon: Sparkles, label: 'Luxury Homes', value: '150+' },
-                { icon: CheckCircle, label: 'Verification Rate', value: '100%' },
-              ].map((stat, i) => (
-                <div key={i} className="bg-slate-900/60 backdrop-blur-sm border border-slate-800/80 rounded-2xl p-5 text-white flex flex-col items-center hover:border-indigo-500/30 hover:shadow-[0_4px_25px_rgba(99,102,241,0.08)] transition-all duration-350 group cursor-default">
-                  <div className="p-3 bg-slate-850 rounded-xl group-hover:scale-110 group-hover:bg-indigo-950/40 transition-all duration-300 mb-3">
-                    <stat.icon className="h-5 w-5 text-indigo-400" />
+
+              {/* Floating Search Panel — at bottom of hero, dropdown opens into listings below */}
+              <div className="max-w-[780px] mx-auto animate-fade-in-up stagger-3">
+                <div className="bg-white dark:bg-[#111b2e] rounded-2xl shadow-search p-3 border border-border-light dark:border-white/10">
+                  <div className="flex items-center gap-2">
+                    <div className="hidden sm:flex items-center gap-2 px-4 h-11 bg-surface-soft rounded-xl border border-border shrink-0">
+                      <MapPin className="w-4 h-4 text-brand" />
+                      <span className="text-[13px] font-medium text-navy">All Cities</span>
+                    </div>
+                    <div className="flex-1 relative">
+                      <SearchBar
+                        onSearch={(searchQuery, searchLocation) => {
+                          model.handleFilterChange({ ...model.filters, search: searchQuery || undefined, city: searchLocation || undefined, page: 1 })
+                        }}
+                        initialQuery={model.filters.search || ''}
+                        initialLocation={model.filters.city || ''}
+                      />
+                    </div>
                   </div>
-                  <span className="text-2xl font-black tracking-tight">{stat.value}</span>
-                  <span className="text-[9px] font-extrabold text-slate-550 mt-1.5 uppercase tracking-widest">{stat.label}</span>
+                  
+                  {/* Popular Chips */}
+                  <div className="flex flex-wrap gap-2 mt-3 px-1">
+                    {['Koramangala', 'Infopark', 'Indiranagar', 'Whitefield', 'Fort Kochi'].map((loc) => (
+                      <button
+                        key={loc}
+                        onClick={() => model.handleFilterChange({ ...model.filters, city: loc, page: 1 })}
+                        className="px-3.5 py-1.5 text-[12px] font-medium text-navy-600 dark:text-slate-300 bg-white dark:bg-[#111b2e] border border-border dark:border-white/10 rounded-pill hover:border-brand hover:bg-brand-light hover:text-brand transition-all"
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
           </section>
 
-          {/* Properties Catalog Content */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row gap-8">
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden px-4 pt-6">
+            <button
+              onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-[#111b2e] border border-border dark:border-white/10 rounded-lg text-[13px] font-semibold text-navy-700 dark:text-slate-200 hover:border-brand hover:text-brand transition-all"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}
+            </button>
+          </div>
+
+          {/* Mobile Filters Overlay */}
+          {mobileFiltersOpen && (
+            <div className="lg:hidden fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setMobileFiltersOpen(false)}>
+              <div className="absolute inset-0 bg-white dark:bg-[#0c1222] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between p-4 border-b border-border dark:border-white/10 sticky top-0 bg-white dark:bg-[#0c1222] z-10">
+                  <h3 className="text-sm font-bold text-navy">Filters</h3>
+                  <button onClick={() => setMobileFiltersOpen(false)} className="p-2 hover:bg-surface-soft rounded-xl">
+                    <ChevronUp className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-4">
+                  <PropertyFilters filters={model.filters} onChange={(f) => { model.handleFilterChange(f); setMobileFiltersOpen(false); }} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Catalog */}
+          <div className="max-w-content mx-auto px-4 sm:px-6 py-8">
+            <div className="flex flex-col lg:flex-row gap-6">
               
-              {/* Filters Sidebar */}
-              <aside className="w-full lg:w-80 shrink-0">
-                <div className="bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm sticky top-[160px]">
+              {/* Desktop Sidebar */}
+              <aside className="hidden lg:block w-[288px] shrink-0">
+                <div className="bg-white dark:bg-[#111b2e] rounded-lg border border-border dark:border-white/10 p-5 sticky top-[140px] shadow-soft">
                   <PropertyFilters filters={model.filters} onChange={model.handleFilterChange} />
                 </div>
               </aside>
 
-              {/* Listings Feed */}
-              <div className="flex-grow space-y-6">
+              {/* Listings */}
+              <div className="flex-grow space-y-5">
                 
-                {/* Top Quick Pills */}
-                <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-hide pt-1">
-                  <button
-                    type="button"
-                    onClick={() => model.handleFilterChange({ ...model.filters, listing_type: undefined })}
-                    className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border hover:scale-[1.02] active:scale-95 duration-200 ${!model.filters.listing_type ? 'bg-slate-900 dark:bg-indigo-600 text-white border-slate-950 dark:border-indigo-650 shadow-[0_4px_15px_rgba(99,102,241,0.25)]' : 'bg-white dark:bg-slate-900/60 text-slate-650 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700'}`}
-                  >
-                    All Listings
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => model.handleFilterChange({ ...model.filters, listing_type: 'rent' })}
-                    className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border hover:scale-[1.02] active:scale-95 duration-200 ${model.filters.listing_type === 'rent' ? 'bg-slate-900 dark:bg-indigo-600 text-white border-slate-950 dark:border-indigo-650 shadow-[0_4px_15px_rgba(99,102,241,0.25)]' : 'bg-white dark:bg-slate-900/60 text-slate-650 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700'}`}
-                  >
-                    For Rent
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => model.handleFilterChange({ ...model.filters, listing_type: 'sale' })}
-                    className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border hover:scale-[1.02] active:scale-95 duration-200 ${model.filters.listing_type === 'sale' ? 'bg-slate-900 dark:bg-indigo-600 text-white border-slate-950 dark:border-indigo-650 shadow-[0_4px_15px_rgba(99,102,241,0.25)]' : 'bg-white dark:bg-slate-900/60 text-slate-650 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700'}`}
-                  >
-                    For Sale
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => model.handleFilterChange({ ...model.filters, listing_type: 'roommate' })}
-                    className={`px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border hover:scale-[1.02] active:scale-95 duration-200 ${model.filters.listing_type === 'roommate' ? 'bg-slate-900 dark:bg-indigo-600 text-white border-slate-950 dark:border-indigo-650 shadow-[0_4px_15px_rgba(99,102,241,0.25)]' : 'bg-white dark:bg-slate-900/60 text-slate-655 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700'}`}
-                  >
-                    Flat / Room Share
-                  </button>
-                </div>
+                {/* Quick Pills + View Controls */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                    {[
+                      { label: 'All', value: undefined },
+                      { label: 'For Rent', value: 'rent' },
+                      { label: 'For Sale', value: 'sale' },
+                      { label: 'Roommate', value: 'roommate' },
+                    ].map(({ label, value }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => model.handleFilterChange({ ...model.filters, listing_type: value as any })}
+                        className={`px-4 py-2 rounded-pill text-[12px] font-semibold whitespace-nowrap border transition-all ${
+                          model.filters.listing_type === value
+                            ? 'bg-brand text-white border-brand'
+                            : 'bg-white dark:bg-[#111b2e] text-navy-600 dark:text-slate-300 border-border dark:border-white/10 hover:border-brand hover:text-brand'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
 
-                {/* View Controls & Result Count */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800/80">
-                  <div className="flex items-center gap-4">
-                    <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">
-                      Showing <span className="font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-850 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800">{model.sortedProperties.length}</span> property results
-                    </p>
-                    
-                    {/* View Toggler */}
-                    <div className="flex items-center bg-slate-100/60 dark:bg-slate-900/60 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
-                      <button type="button" onClick={() => model.setViewType('grid')} className={`p-2 rounded-lg transition-all ${model.viewType === 'grid' ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}>
-                        <LayoutGrid className="w-4 h-4" />
-                      </button>
-                      <button type="button" onClick={() => model.setViewType('list')} className={`p-2 rounded-lg transition-all ${model.viewType === 'list' ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-650 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}>
-                        <List className="w-4 h-4" />
-                      </button>
-                      <button type="button" onClick={() => model.setViewType('map')} className={`p-2 rounded-lg transition-all ${model.viewType === 'map' ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-650 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}>
-                        <MapIcon className="w-4 h-4" />
-                      </button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center bg-white dark:bg-[#111b2e] border border-border dark:border-white/10 rounded-lg p-0.5">
+                      {[
+                        { type: 'grid', Icon: LayoutGrid },
+                        { type: 'list', Icon: List },
+                        { type: 'map', Icon: MapIcon },
+                      ].map(({ type, Icon }) => (
+                        <button key={type} type="button" onClick={() => model.setViewType(type as any)} className={`p-2 rounded-md transition-all ${model.viewType === type ? 'bg-brand-light text-brand' : 'text-navy-400 hover:text-navy'}`}>
+                          <Icon className="w-4 h-4" />
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-4 w-4 text-navy-400" />
+                      <select value={model.sortBy} onChange={(e) => model.setSortBy(e.target.value)} className="bg-white dark:bg-[#111b2e] border border-border dark:border-white/10 rounded-lg px-3 py-2 text-[12px] font-semibold text-navy dark:text-slate-200 focus:outline-none focus:border-brand transition-all cursor-pointer">
+                        <option value="newest">Newest</option>
+                        <option value="price_low">Price: Low to High</option>
+                        <option value="price_high">Price: High to Low</option>
+                      </select>
                     </div>
                   </div>
-
-                  {/* Sorting */}
-                  <div className="flex items-center space-x-2">
-                    <ArrowUpDown className="h-4 w-4 text-slate-400" />
-                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Sort by:</span>
-                    <select 
-                      value={model.sortBy}
-                      onChange={(e) => model.setSortBy(e.target.value)}
-                      className="bg-transparent text-xs font-black text-slate-900 dark:text-white focus:outline-none cursor-pointer border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl hover:border-slate-350 transition-colors"
-                    >
-                      <option value="newest" className="dark:bg-slate-900">Newest Ads</option>
-                      <option value="price_low" className="dark:bg-slate-900">Price: Low to High</option>
-                      <option value="price_high" className="dark:bg-slate-900">Price: High to Low</option>
-                    </select>
-                  </div>
                 </div>
 
-                {/* Properties Grid */}
-                {model.isLoading ? (
-                  <div className="w-full py-20 flex justify-center">
-                    <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin dark:border-indigo-400"></div>
+                {/* Results count */}
+                <p className="text-[13px] font-medium text-navy-400 dark:text-slate-400">
+                  Showing <span className="font-bold text-navy dark:text-white">{model.sortedProperties.length}</span> properties
+                </p>
+
+                {/* Grid */}
+                {(model.isLoading || model.isFetching) && model.sortedProperties.length === 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {[1, 2, 3, 4, 5, 6].map(i => <PropertyCardSkeleton key={i} />)}
                   </div>
                 ) : model.error ? (
-                  <div className="w-full py-20 text-center text-red-500 font-bold bg-red-500/5 border border-red-550/20 rounded-3xl">
-                    Failed to load properties list.
+                  <div className="py-20 text-center text-red-500 font-semibold bg-red-50 border border-red-200 rounded-xl">
+                    Failed to load properties.
                   </div>
                 ) : model.sortedProperties.length === 0 ? (
-                  <div className="w-full py-24 text-center bg-white dark:bg-slate-900/40 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-5 text-slate-400 border border-slate-100 dark:border-slate-800">
-                      <Building2 className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">No properties match your filters</h3>
-                    <p className="text-xs text-slate-500 mt-1">Try adapting your price bounds or location specifications.</p>
+                  <div className="py-24 text-center bg-white dark:bg-[#111b2e] rounded-xl border border-border dark:border-white/10 shadow-soft">
+                    <Building2 className="w-10 h-10 text-navy-300 mx-auto mb-4" />
+                    <h3 className="text-base font-bold text-navy">No properties found</h3>
+                    <p className="text-sm text-navy-400 mt-1">Try adjusting your filters or search terms.</p>
                   </div>
                 ) : model.viewType === 'map' ? (
                   <PropertyMap properties={model.sortedProperties} />
                 ) : (
-                  <div className={model.viewType === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-6"}>
+                  <div className={model.viewType === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" : "space-y-4"}>
                     {model.sortedProperties.map((property) => (
-                      <PropertyCard key={property.id} property={property} viewType={model.viewType === 'grid' ? 'grid' : 'list'} />
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        viewType={model.viewType === 'grid' ? 'grid' : 'list'}
+                        userLocation={geo.latitude && geo.longitude ? { latitude: geo.latitude, longitude: geo.longitude } : null}
+                      />
                     ))}
                   </div>
                 )}
-
               </div>
-
             </div>
           </div>
         </div>
       ) : (
-        <div className="space-y-12">
-          
-          {/* Hero Section: Hostels tab */}
-          <section className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900/70 text-center relative overflow-hidden border-b border-slate-850 shadow-xl py-20 px-4">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-purple-955/40 via-transparent to-transparent pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-pink-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div className="relative z-10 max-w-3xl mx-auto space-y-6">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-955/80 dark:bg-purple-900/30 border border-purple-500/30 text-purple-300 text-[10px] font-black tracking-widest uppercase mb-1 shadow-sm">
-                <Compass className="w-3.5 h-3.5 text-purple-400 fill-purple-400/20" />
-                Verified PGs & Shared Hostels
-              </span>
-              <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-none">
-                Home Away From Home
+        <div className="space-y-0">
+          {/* Hostels Hero */}
+          <section className="relative overflow-hidden" style={{ background: 'radial-gradient(circle at 90% 20%, rgba(75,143,135,0.08), transparent 35%), var(--bg)' }}>
+            <div className="max-w-content mx-auto px-4 sm:px-6 pt-16 pb-20 text-center">
+              <div className="inline-flex items-center gap-2 bg-brand-light border border-brand-200 rounded-pill px-4 py-2 mb-8">
+                <span className="w-2 h-2 bg-brand rounded-full" />
+                <span className="text-[13px] font-semibold text-brand">Verified PGs & Shared Hostels</span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-[60px] font-serif font-bold text-navy dark:text-white leading-[1.08] tracking-tight mb-6">
+                Home Away From<br />
+                <span className="bg-gradient-to-r from-brand to-brand-dark bg-clip-text text-transparent">Home</span>
               </h1>
-              <p className="text-slate-400 text-xs sm:text-base max-w-xl mx-auto leading-relaxed font-semibold">
+              <p className="text-[17px] text-navy-500 dark:text-slate-300 max-w-[640px] mx-auto leading-relaxed">
                 Explore student hostels, PG spaces, co-living suites, and flatmate listings with verified facilities and reviews.
               </p>
             </div>
-            
-            {/* Hostels Metrics */}
-            <div className="relative z-10 mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-5xl mx-auto px-4">
-              {[
-                { icon: Compass, label: 'Hostel Listings', value: '450+' },
-                { icon: Users, label: 'PG Bed Spaces', value: '1,200+' },
-                { icon: Sparkles, label: 'Premium Perks', value: 'WiFi/Mess/AC' },
-                { icon: CheckCircle, label: 'Brokerage Fee', value: '0%' },
-              ].map((stat, i) => (
-                <div key={i} className="bg-slate-900/60 backdrop-blur-sm border border-slate-800/80 rounded-2xl p-5 text-white flex flex-col items-center hover:border-purple-500/30 hover:shadow-[0_4px_25px_rgba(168,85,247,0.08)] transition-all duration-350 group cursor-default">
-                  <div className="p-3 bg-slate-850 rounded-xl group-hover:scale-110 group-hover:bg-purple-950/40 transition-all duration-300 mb-3">
-                    <stat.icon className="h-5 w-5 text-purple-400" />
-                  </div>
-                  <span className="text-2xl font-black tracking-tight">{stat.value}</span>
-                  <span className="text-[9px] font-extrabold text-slate-500 mt-1.5 uppercase tracking-widest">{stat.label}</span>
-                </div>
-              ))}
-            </div>
           </section>
 
-          {/* Hostels Finder Content */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Hostels Finder */}
+          <div className="max-w-content mx-auto px-4 sm:px-6 py-8">
             <HostelFinder hideBanner={true} />
           </div>
         </div>
+      )}
+
+      {/* Scroll to Top */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 w-11 h-11 bg-brand text-white rounded-full shadow-floating hover:shadow-card-hover hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
       )}
     </div>
   )

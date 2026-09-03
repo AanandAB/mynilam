@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
+import { DM_Sans, DM_Serif_Display } from 'next/font/google'
 import './globals.css'
 import { QueryProvider } from './providers/query-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
@@ -8,11 +7,22 @@ import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
-const inter = Inter({ subsets: ['latin'] })
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+})
+
+const dmSerif = DM_Serif_Display({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-dm-serif',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: 'MyNilam | Real Estate & Roommate Marketplace',
-  description: 'Find apartments, flats, villas, plots, or roommate matches with ease.',
+  title: 'MyNilam | Premium Property & Co-Living Marketplace',
+  description: 'Find PGs, hostels, co-living spaces, apartments and rooms across 85+ cities. Verified listings, zero brokerage.',
 }
 
 export default function RootLayout({
@@ -21,13 +31,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-transparent text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <html lang="en" suppressHydrationWarning className={`${dmSans.variable} ${dmSerif.variable}`}>
+      <body className="font-sans bg-cream dark:bg-[#0c1222] text-navy dark:text-slate-200 antialiased transition-colors duration-200 min-h-screen">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <QueryProvider>
             <div className="flex flex-col min-h-screen">
               <Header />
-              <main className="flex-grow bg-transparent">{children}</main>
+              <main className="flex-grow">{children}</main>
               <Footer />
             </div>
           </QueryProvider>

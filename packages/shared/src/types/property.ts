@@ -40,6 +40,10 @@ export interface Property {
   location_unlocked?: boolean
   landmark?: string | null
   street_address?: string | null
+  security_deposit?: number | null
+  show_contact_details?: boolean
+  contact_name?: string | null
+  contact_phone?: string | null
   user_id: string
   user?: User
   total_rooms?: number | null
@@ -96,6 +100,11 @@ export interface CreatePropertyInput {
   zip_code?: string
   latitude?: number
   longitude?: number
+  security_deposit?: number
+  landmark?: string
+  show_contact_details?: boolean
+  contact_name?: string
+  contact_phone?: string
   images: File[]
   videos?: File[]
   total_rooms?: number

@@ -4,141 +4,204 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/app/hooks/use-auth'
 import { Button } from '../ui/button'
-import { Home, Sparkles, LogOut, User, PlusCircle, Settings } from 'lucide-react'
+import { Home, LogOut, User, PlusCircle, Settings, Menu, X, Search } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth()
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
-  const [logoIndex, setLogoIndex] = useState(0)
-  const [isFlipped, setIsFlipped] = useState(false)
-  const logoWords = ['Nilam', 'നിലം', 'ज़मीन', 'நிலം', 'أرض']
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIsFlipped(true)
-      setTimeout(() => {
-        setLogoIndex((prev) => (prev + 1) % logoWords.length)
-        setIsFlipped(false)
-      }, 300)
-    }, 10000)
-    return () => clearInterval(timer)
-  }, [])
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      
-      // Always show at the top of the page
-      if (currentScrollY < 50) {
-        setIsVisible(true)
-        setLastScrollY(currentScrollY)
-        return
-      }
-
-      // Hide on scroll down, show on scroll up
-      if (currentScrollY > lastScrollY) {
-        setIsVisible(false) // scrolling down
-      } else {
-        setIsVisible(true) // scrolling up
-      }
-      
+      if (currentScrollY < 50) { setIsVisible(true); setLastScrollY(currentScrollY); return }
+      if (currentScrollY > lastScrollY) setIsVisible(false)
+      else setIsVisible(true)
       setLastScrollY(currentScrollY)
     }
-
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
+  useEffect(() => {
+    const handleResize = () => { if (window.innerWidth >= 768) setMobileMenuOpen(false) }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const navLinks = [
+    { href: '/', label: 'Find Rooms' },
+    ...(user && user.role !== 'hostel_admin' ? [{ href: '/post', label: 'List Property' }] : []),
+    ...(user ? [{ href: '/dashboard', label: 'Dashboard' }] : []),
+  ]
+
   return (
-    <header className={`sticky top-3 z-50 px-4 transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-16 opacity-0'}`}>
-      <div className="max-w-7xl mx-auto bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border-2 border-black dark:border-slate-600 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/50 px-4 sm:px-6 h-16 flex items-center justify-between transition-all duration-300 hover:shadow-2xl hover:border-indigo-600 dark:hover:border-indigo-400">
-        
-        {/* Brand Logo */}
-        <Link href={user && user.role === 'hostel_admin' ? '/dashboard' : '/'} className="flex items-center space-x-2.5 group shrink-0 pr-1">
-          <div className="p-2 bg-slate-900 dark:bg-indigo-600 rounded-xl text-white shadow-md group-hover:scale-105 group-hover:rotate-1 transition-all duration-200">
-            <Home className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-black tracking-tight whitespace-nowrap py-1 inline-block select-none">
-            <span className="bg-gradient-to-r from-slate-950 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">My</span>
-            <span 
-              className={`inline-block transition-all duration-300 transform ml-0.5 bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent ${
-                isFlipped ? 'opacity-0 scale-75 -translate-y-1' : 'opacity-100 scale-100 translate-y-0'
-              }`}
-            >
-              {logoWords[logoIndex]}
-            </span>
-          </span>
-        </Link>
+    <>
+      {/* Top accent line */}
+      <div className="w-full h-[3px] bg-gradient-to-r from-brand via-brand-dark to-brand" />
 
-        {/* Center Links */}
-        {user && (
-          <nav className="hidden md:flex items-center space-x-1">
-            {user.role !== 'hostel_admin' && (
-              <Link href="/" className="px-4 py-2 text-xs font-bold text-slate-650 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 rounded-xl transition-all duration-150">
-                Find Properties
-              </Link>
-            )}
-            <Link href="/dashboard" className="px-4 py-2 text-xs font-bold text-slate-650 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 rounded-xl transition-all duration-150">
-              Dashboard
-            </Link>
-            <Link href="/settings" className="px-4 py-2 text-xs font-bold text-slate-650 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-900/60 rounded-xl transition-all duration-150 flex items-center gap-1">
-              <Settings className="w-3.5 h-3.5" />
-              <span>Settings</span>
-            </Link>
-          </nav>
-        )}
-
-        {/* Right Nav Controls */}
-        <div className="flex items-center space-x-3">
-          
-          {user && user.role !== 'guest' && (
-            <Link
-              href="/settings"
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/60 dark:border-indigo-800 hover:bg-indigo-100/30 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold shadow-sm transition-all duration-200"
-            >
-              <Sparkles className="h-3 w-3 text-indigo-500 fill-indigo-500" />
-              <span>Go Pro</span>
-            </Link>
-          )}
-
-          {user ? (
-            <div className="flex items-center space-x-4">
-              <div className="hidden lg:flex flex-col text-right">
-                <span className="text-xs font-extrabold text-slate-800 dark:text-white leading-none">{user.full_name}</span>
-                <span className="text-[9px] font-bold text-slate-400 capitalize mt-1 tracking-wider bg-slate-50 dark:bg-slate-900 px-2 py-0.5 rounded-full border border-slate-200/50 dark:border-slate-800/80">{user.role}</span>
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+        <div className="bg-white/95 dark:bg-[#111b2e]/95 backdrop-blur-md border-b border-border-light dark:border-white/10">
+          <div className="max-w-content mx-auto px-4 sm:px-6 h-[68px] flex items-center justify-between">
+            
+            {/* Logo */}
+            <Link href={user && user.role === 'hostel_admin' ? '/dashboard' : '/'} className="flex items-center gap-2.5 group shrink-0">
+              <div className="w-9 h-9 bg-brand rounded-xl flex items-center justify-center text-white shadow-sm group-hover:shadow-md transition-shadow">
+                <Home className="h-[18px] w-[18px]" />
               </div>
-              <button 
-                onClick={() => logout()}
-                className="p-2 text-slate-500 hover:text-red-500 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-150"
-                title="Sign out"
+              <span className="text-xl font-bold text-navy dark:text-white tracking-tight flex items-center">
+                My
+                <span className="nilam-container ml-0.5">
+                  <span className="nilam-word text-brand">Nilam</span>
+                  <span className="nilam-word text-brand">नीलम</span>
+                  <span className="nilam-word text-brand">نیلم</span>
+                  <span className="nilam-word text-brand">নীলম</span>
+                  <span className="nilam-word text-brand">நீலம்</span>
+                  <span className="nilam-word text-brand">నీలం</span>
+                </span>
+              </span>
+            </Link>
+
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navLinks.map(({ href, label }) => {
+                const isActive = href === '/'
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`px-4 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? 'bg-brand-light dark:bg-brand/15 text-brand'
+                        : 'text-navy-600 dark:text-slate-300 hover:text-navy dark:hover:text-white hover:bg-surface-soft dark:hover:bg-white/5'
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                )
+              })}
+            </nav>
+
+            {/* Right Controls */}
+            <div className="flex items-center gap-3">
+              {/* Header Search - desktop */}
+              <div className="hidden lg:flex items-center relative">
+                <Search className="absolute left-3.5 h-4 w-4 text-navy-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search city, area..."
+                  className="w-[240px] h-[38px] pl-10 pr-4 bg-surface-soft dark:bg-white/5 border border-border dark:border-white/10 rounded-pill text-[13px] text-navy dark:text-slate-200 placeholder:text-navy-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/20 transition-all"
+                />
+              </div>
+
+              {user ? (
+                <div className="hidden sm:flex items-center gap-3">
+                  {user.role !== 'guest' && user.role !== 'hostel_admin' && (
+                    <Link href="/post">
+                      <Button className="h-9 px-4 bg-brand hover:bg-brand-dark text-white text-[13px] font-semibold rounded-md shadow-sm hover:shadow-md transition-all">
+                        <PlusCircle className="h-4 w-4 mr-1.5" />
+                        List Property
+                      </Button>
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => logout()}
+                    className="p-2 text-navy-400 hover:text-red-500 rounded-xl hover:bg-red-50 transition-all"
+                    title="Sign out"
+                  >
+                    <LogOut className="h-[18px] w-[18px]" />
+                  </button>
+                </div>
+              ) : (
+                <div className="hidden sm:flex items-center gap-2">
+                  <Link href="/login">
+                    <Button variant="ghost" className="h-9 px-4 text-navy-600 hover:text-navy text-[13px] font-semibold">
+                      Log in
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button className="h-9 px-4 bg-brand hover:bg-brand-dark text-white text-[13px] font-semibold rounded-md">
+                      Sign up
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              <ThemeToggle />
+
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-navy-600 hover:bg-surface-soft rounded-xl transition-colors"
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               >
-                <LogOut className="h-5 w-5" />
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
-          ) : (
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="font-bold text-indigo-650 hover:text-indigo-750 text-xs">
-                Log In
-              </Button>
-            </Link>
-          )}
-
-          <ThemeToggle />
-
-          {/* Post Ad CTA */}
-          {user && user.role !== 'guest' && user.role !== 'hostel_admin' && (
-            <Link href="/post">
-              <Button variant="gradient" size="sm" className="flex items-center space-x-1.5 font-bold text-xs bg-slate-900 text-white dark:bg-indigo-600 border-none dark:hover:bg-indigo-700">
-                <PlusCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Post Ad</span>
-              </Button>
-            </Link>
-          )}
+          </div>
         </div>
+      </header>
 
-      </div>
-    </header>
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] md:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />                <div className="absolute top-[71px] left-0 right-0 bg-white dark:bg-[#111b2e] border-b border-border dark:border-white/10 shadow-lg animate-fade-in" onClick={(e) => e.stopPropagation()}>
+            <div className="max-w-content mx-auto px-4 py-3 space-y-1">
+              {/* Mobile Search */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-navy-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search city, area..."                    className="w-full h-10 pl-10 pr-4 bg-surface-soft dark:bg-white/5 border border-border dark:border-white/10 rounded-md text-[13px] text-navy dark:text-slate-200 placeholder:text-navy-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-brand transition-all"
+                />
+              </div>
+
+              {navLinks.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileMenuOpen(false)}                    className="flex items-center px-4 py-3 text-[14px] font-semibold text-navy-700 dark:text-slate-200 hover:bg-surface-soft dark:hover:bg-white/5 rounded-xl transition-colors"
+                >
+                  {label}
+                </Link>
+              ))}
+
+              {user ? (
+                <>
+                  <div className="border-t border-border-light my-2" />
+                  <div className="flex items-center gap-3 px-4 py-2">
+                    <div className="w-8 h-8 bg-brand-light rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-brand" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-navy">{user.full_name}</p>
+                      <p className="text-[10px] font-bold text-navy-400 uppercase tracking-wider">{user.role}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); logout(); }}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors w-full"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <div className="flex gap-2 px-4 pt-2 pb-1">
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                    <Button variant="outline" className="w-full h-10 text-[13px] font-semibold border-border text-navy-600">Log in</Button>
+                  </Link>
+                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                    <Button className="w-full h-10 bg-brand hover:bg-brand-dark text-white text-[13px] font-semibold rounded-md">Sign up</Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

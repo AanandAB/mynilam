@@ -52,9 +52,8 @@ export function useAuth() {
   const registerMutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: () => {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login'
-      }
+      // Don't redirect here - let the SignupPageModel handle the redirect
+      // This allows the signup page to show a success message before redirecting
     },
   })
 

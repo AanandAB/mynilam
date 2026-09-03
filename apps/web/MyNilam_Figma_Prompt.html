@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MyNilam — Complete Frontend Flow (Figma Prompt)</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: #0f172a;
+    line-height: 1.55;
+    font-size: 10.5pt;
+    margin: 0;
+  }
+  .cover {
+    border: 2px solid #0f172a;
+    border-radius: 18px;
+    padding: 40px 34px;
+    text-align: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #4c1d95 100%);
+    color: #fff;
+    margin-bottom: 24px;
+    page-break-after: always;
+  }
+  .cover .brand { font-size: 26pt; font-weight: 800; letter-spacing: -0.5px; }
+  .cover .brand .g { background: linear-gradient(90deg, #818cf8, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .cover .sub { font-size: 11pt; color: #c7d2fe; margin-top: 6px; }
+  .cover .meta { margin-top: 26px; font-size: 9pt; color: #94a3b8; }
+  .cover .tag { display: inline-block; margin-top: 18px; padding: 6px 16px; border: 1px solid #6366f1; border-radius: 999px; font-size: 9pt; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #a5b4fc; }
+
+  h1 { font-size: 16pt; border-bottom: 3px solid #6366f1; padding-bottom: 6px; margin: 22px 0 10px; }
+  h2 { font-size: 12.5pt; margin: 18px 0 6px; color: #1e1b4b; }
+  h3 { font-size: 11pt; margin: 12px 0 4px; color: #312e81; }
+  p { margin: 5px 0; }
+  .screen {
+    border: 1.5px solid #c7d2fe;
+    border-left: 6px solid #6366f1;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    page-break-inside: avoid;
+  }
+  .screen h2 { margin-top: 0; }
+  ul { margin: 4px 0 8px 18px; padding: 0; }
+  li { margin: 3px 0; }
+  .pill { display:inline-block; background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; border-radius:999px; padding:1px 9px; font-size:8.5pt; font-weight:700; }
+  .role { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+  code { background:#f1f5f9; padding:1px 5px; border-radius:5px; font-size:9pt; font-family: Consolas, monospace; }
+  .note { background:#fffbeb; border:1px solid #fde68a; color:#78350f; border-radius:8px; padding:8px 12px; font-size:9pt; margin:8px 0; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media print { .screen { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="brand">My<span class="g">Nilam</span></div>
+  <div class="sub">Complete Frontend Flow — Figma Design Prompt</div>
+  <div class="tag">Design System · Screens · Responsive · Role Flows</div>
+  <div class="meta">Product: Indian rental &amp; co-living marketplace<br>Stack: Next.js (App Router) · Tailwind · Leaflet/OpenStreetMap · Django DRF backend<br>Date: August 2026</div>
+</div>
+
+<h1>Product Overview</h1>
+<p><b>MyNilam</b> is an Indian real-estate rental + co-living marketplace. It connects tenants with verified flats, houses, commercial spaces, PG/hostel beds and roommate shares. The brand tagline is <i>"Find Your Next Room."</i></p>
+<p>The logo is the word <b>"My"</b> in slate, followed by the animated word <b>"Nilam"</b> (the word for "land") cycling through 5 languages: <b>Nilam · നിലം · ज़मीन · நிலம் · أرض</b> — rendered in an indigo-to-violet gradient.</p>
+
+<h1>Design Language (apply everywhere)</h1>
+<ul>
+  <li><b>Glassmorphism + soft depth</b>: <code>white/90</code> (light) or <code>slate-950/90</code> (dark) surfaces with backdrop-blur, <code>rounded-3xl</code> cards, <code>border-2 border-black</code> in light mode / <code>border-slate-600</code> in dark mode, layered shadows and radial gradient glows (indigo and purple).</li>
+  <li><b>Fully responsive</b>: desktop = 3-column + sticky sidebar; tablet = 2-column; mobile = single column with a fixed bottom action bar.</li>
+  <li><b>Light + dark mode</b> both required.</li>
+  <li><b>Color system</b>: primary <code>indigo-600</code> (gradient indigo-600 → violet-700); hostels/PG accent <code>purple-600 → pink-700</code>; success <code>emerald</code>; availability emerald pill; danger <code>red</code>; warning <code>amber</code>; neutral <code>slate-50 → 950</code>.</li>
+  <li><b>Typography</b>: heavy weights (font-black / font-extrabold) for headings and prices; tiny uppercase tracking-widest labels (10–12px) for micro-labels; prices in Indian ₹ formatting (e.g. <code>₹25,000/mo</code>).</li>
+  <li><b>Micro-interactions</b>: hover scale-105 on cards/buttons, active scale-95, animated fade-in, sticky header that hides on scroll-down and reappears on scroll-up.</li>
+</ul>
+
+<h1>Roles (each sees a different dashboard)</h1>
+<ul>
+  <li><span class="pill">1</span> <b>Guest</b> — browse only, no posting.</li>
+  <li><span class="pill">2</span> <b>Normal user</b> (landlord/tenant) — post ads, favorites, inquiries, messages, visits, leases, maintenance.</li>
+  <li><span class="pill">3</span> <b>Employee</b> — verify &amp; publish pending listings.</li>
+  <li><span class="pill">4</span> <b>Super Admin</b> — master catalog, employee register, user directory, hostel requests.</li>
+  <li><span class="pill">5</span> <b>Hostel Admin</b> — manage a single hostel/PG.</li>
+</ul>
+
+<h1>Screen Flow</h1>
+
+<div class="screen">
+<h2>Screen 1 — Home / Catalog <code>/</code></h2>
+<ul>
+  <li><b>Sticky glass header</b> (top): logo left; center nav <i>"Find Properties · Dashboard · Settings"</i>; right <i>"Go Pro"</i> pill, user name + role chip, logout icon, theme toggle, and a <b>"Post Ad"</b> gradient CTA.</li>
+  <li>Below header, a sticky glassmorphic <b>tab switcher</b> with two big segmented buttons: <b>"PROPERTIES &amp; ROOMS"</b> (indigo gradient when active) and <b>"HOSTELS &amp; PGs"</b> (purple gradient when active).</li>
+  <li><b>Hero section</b> (Properties tab): centered badge <i>"Verified Rentals &amp; Co-living"</i>, giant heading <i>"Find Your Next Room"</i>, subtitle, and a 4-stat grid (Listed Units 1,200+ · Matched Flatmates 500+ · Luxury Homes 150+ · Verification Rate 100%).</li>
+  <li><b>Filters sidebar</b> (sticky, left, ~320px): search box, city, BHK/bedrooms, bathrooms, furnishing select, price min/max range, area range, property type, listing type, tenant preference, preferred gender, availability toggle, "freshness" (newest) toggle, verified-only toggle.</li>
+  <li><b>Listings feed</b> (right): horizontal quick-filter pills (<i>All Listings / For Rent / For Sale / Flat-Room Share</i>), results count (<i>"Showing N property results"</i>), a view toggler (Grid / List / Map icons), and a sort dropdown (Newest / Price Low→High / Price High→Low).</li>
+  <li><b>Property card</b> (grid + list variants): thumbnail image, "For Rent/Sale" tag + "Published/Pending" status pill, title, address + city, price in ₹, <i>"View listing details →"</i> link, remove button (owner/admin only).</li>
+  <li><b>Map view</b>: full-width Leaflet/OpenStreetMap with property pins (Kochi, Kerala).</li>
+  <li><b>Empty state</b>: dashed-border card with building icon — <i>"No properties match your filters."</i></li>
+</ul>
+</div>
+
+<div class="screen">
+<h2>Screen 2 — Login <code>/login</code></h2>
+<ul>
+  <li>Centered glass card (max-width 448px), floating on a soft blurred indigo glow.</li>
+  <li>Shield icon, <i>"Welcome back"</i> heading, <i>"Sign in or create a new one"</i> link.</li>
+  <li>Email input (mail icon), Password input (lock icon), inline error pill (red).</li>
+  <li>Primary <b>"Sign In"</b> button, divider <i>"OR"</i>, secondary <b>"Continue as Guest"</b> button.</li>
+  <li>(Dev-only) 4 quick-login chips: Normal User · Hostel Admin · Employee · Super Admin.</li>
+</ul>
+</div>
+
+<div class="screen">
+<h2>Screen 3 — Sign Up <code>/signup</code></h2>
+<ul>
+  <li>Same centered glass card style. Fields: full name, email, phone, password, confirm password, role selector.</li>
+  <li>Primary <b>"Create Account"</b> button + link back to login.</li>
+</ul>
+</div>
+
+<div class="screen">
+<h2>Screen 4 — Post Ad Wizard <code>/post</code> (4 steps + success)</h2>
+<p>Header: <i>"Post Advertisement"</i> + progress pill <i>"Step X of 4"</i>.</p>
+<ul>
+  <li><b>Step 1 — "What type of ad is this?"</b>: 3 selectable cards (Rent Out · Sell Property · Find Roommate), each with icon, title, description, ring highlight when selected. <i>Continue</i>.</li>
+  <li><b>Step 2 — "Select category"</b>: grid of icon tiles (Apartment/Flat · House/Villa · Commercial · Hostel Space · PG/Co-Living · Plot/Land · Shared Room · Flat Share). <i>Back + Continue</i>.</li>
+  <li><b>Step 3 — "Listing specifications"</b>: Title, Description (char counter /1000), Price (₹), Area (sq.ft), Bedrooms, Bathrooms, Total Rooms, "Is Upstairs Unit?" checkbox, "Is Furnished?" checkbox (reveals Number of Beds + furniture checkboxes: Sofa, Dining Table, AC, TV, Fridge, Washing Machine, Microwave, Wardrobe, Gas Stove, Induction, Gas Connection), <i>Utilities &amp; Conveniences</i> block (Water Source, Power Backup, Reserved Parking dropdowns), Tenant Preference + Preferred Gender dropdowns, "Gated Community?" checkbox, Security &amp; Safety checkboxes (CCTV, Guard, Intercom, Fire). For Hostel/PG: gender restriction dropdown + room sharing capacity (1–6 share, dorm) + amenities checkboxes (Mess/Food, WiFi, AC, Laundry). Address, Landmark (optional), City/State/Zip, and a <i>"Pin exact location on map"</i> button (shows selected lat/lng). <i>Continue</i> (disabled until title/price/address/city set).</li>
+  <li><b>Step 4 — "Pricing, Contact &amp; Media"</b>: Advance/Security Deposit (₹) input; <i>"Use same contact details as profile"</i> checkbox (uncheck reveals Contact Name + Contact Number); <i>"Show contact details in listing"</i> checkbox with privacy note; Photo drag-and-drop zone (PNG/JPG, max 10, <i>"Browse Photos"</i>) and Video drag-drop zone (MP4/MOV/AVI, max 2, <i>"Browse Videos"</i>); uploaded photo preview grid with remove buttons. <i>"Publish Listing"</i> button.</li>
+  <li><b>Step 5 — Success</b>: animated check, <i>"Ad Posted Successfully!"</i>, note that listing goes live after staff verification, buttons <i>"Go to Dashboard"</i> + <i>"Post Another"</i>.</li>
+  <li><b>Modal — Location picker</b>: full-screen Leaflet map with draggable pin (default center Kochi 9.9312, 76.2673), <i>"Confirm location"</i> + close.</li>
+</ul>
+</div>
+
+<div class="screen">
+<h2>Screen 5 — Property Detail <code>/properties/[id]</code></h2>
+<ul>
+  <li><b>Top bar</b>: <i>"← Back to catalog"</i> + Share button (copies link).</li>
+  <li><b>Hero</b>: badges row (For Rent · X Beds Available · property type), title, location line (address, city, state · Near landmark), right-aligned Monthly Rent (₹ big, indigo) + Save heart button.</li>
+  <li>(Hostel/PG only) quick summary banner.</li>
+  <li><b>Left column (2/3)</b>: image gallery (main + thumbnails); property summary cards (rooms, bathrooms, area, furnishing, parking, etc.); (hostel) room-types &amp; pricing breakdown with per-room "select" that opens a move-in summary drawer; <i>"About the Property"</i> description; amenities badges grid; video walkthrough (if present); location privacy section with map (exact pin locked until user requests — "unlock location" flow); reviews section (star rating, review list, "write review").</li>
+  <li><b>Right sidebar (1/3, sticky)</b>: pricing + availability card (Monthly Rent, <i>"Available / N Beds Left"</i> emerald pill, Security Deposit); owner contact + inquiry form card (name, phone/email — contact shown only if owner enabled it, otherwise <i>"details shared after enquiry accepted"</i>); <i>"Schedule Visit"</i> form (date, time, message).</li>
+  <li><b>Mobile</b>: fixed bottom action bar with price + <i>"Inquire Now"</i> button (scrolls to inquiry form).</li>
+</ul>
+</div>
+
+<div class="screen">
+<h2>Screen 6 — Dashboard <code>/dashboard</code> (role-based)</h2>
+<ul>
+  <li><b>Hero banner</b> (dark slate): role chip (<i>"Super Admin Access"</i> / <i>"normal role"</i>), <i>"Welcome, {name}"</i>, role-specific tagline, Post Property Ad CTA (non-guest), Log out button. (Non-guest) inline <i>"Price Overview"</i> mini bar chart (1/2/3/4 share prices).</li>
+  <li><b>Left sidebar</b> (tab nav, icon + label + count badge), tabs by role:</li>
+  <ul>
+    <li>My Ad Listings / Browse Properties / All Active Ads</li>
+    <li>Verify Listings (employee) · Employee Register (super admin) · User Directory (super admin)</li>
+    <li>Leases · Maintenance · Favorites · Inquiries · Messages · Visits</li>
+    <li>Hostel Requests (super admin) · Hostel Photos (hostel admin) · Hostel Management (hostel admin)</li>
+  </ul>
+  <li><b>Main panel</b> content per tab:</li>
+  <ul>
+    <li><b>My Ads</b>: card grid (status pill, title, address, price, view/remove).</li>
+    <li><b>Verify Listings</b>: list of pending ads with <i>"Verify &amp; Publish"</i> button; <i>"All clean!"</i> empty state.</li>
+    <li><b>Employee Register</b>: add-employee form (name + email) + staff list.</li>
+    <li><b>User Directory</b>: table of normal users with delete.</li>
+    <li><b>Favorites</b>: saved property cards. <b>Inquiries</b>: received enquiries with accept/reject. <b>Messages</b>: real-time chat threads. <b>Visits</b>: scheduled visit requests. <b>Leases</b>: lease contracts list/detail. <b>Maintenance</b>: request categories + submit.</li>
+    <li><b>Hostel Management</b> (hostel admin): full config form — hostel name, total beds/rooms, sharing types + per-share pricing, bathrooms, attached bathrooms, WiFi speed, hot water, water filter, mess, laundry, AC, address, city, price, gender type, vacant beds/rooms, water source.</li>
+    <li><b>Hostel Photos</b>: upload/manage hostel photo gallery. Room/Bed grid editor.</li>
+  </ul>
+</ul>
+</div>
+
+<div class="screen">
+<h2>Screen 7 — Settings <code>/settings</code></h2>
+<ul>
+  <li>Profile edit (name, email, phone), theme preference, password change, notification toggles, logout. Same glass card styling.</li>
+</ul>
+</div>
+
+<h1>Component Inventory (build once, reuse)</h1>
+<div class="grid2">
+<ul>
+  <li>Glass Header</li>
+  <li>Tab Switcher</li>
+  <li>Filter Sidebar</li>
+  <li>Property Card</li>
+  <li>Property Gallery</li>
+  <li>Summary Cards</li>
+  <li>Amenities Badges</li>
+  <li>Room Breakdown</li>
+  <li>Move-In Summary Drawer</li>
+</ul>
+<ul>
+  <li>Inquiry Form</li>
+  <li>Visit Request Form</li>
+  <li>Location Map (privacy-locked)</li>
+  <li>Review Section</li>
+  <li>Leaflet Map Picker Modal</li>
+  <li>Drag-drop Upload Zone</li>
+  <li>Stepper Header</li>
+  <li>Segmented View Toggler</li>
+  <li>Empty State</li>
+</ul>
+<ul>
+  <li>Skeleton Loader</li>
+  <li>Sticky Bottom Action Bar</li>
+  <li>Success Screen</li>
+  <li>Toast / Success &amp; Error pills</li>
+  <li>Role Chip</li>
+</ul>
+</div>
+
+<h1>Responsive Rules</h1>
+<ul>
+  <li><b>Desktop (≥1024px)</b>: 3-col detail layout, sticky sidebar, full header nav.</li>
+  <li><b>Tablet (768–1023px)</b>: 2-col grids, condensed nav.</li>
+  <li><b>Mobile (&lt;768px)</b>: single column, header collapses, tab switcher full-width, filters become collapsible drawer, detail page gets fixed bottom action bar, wizard cards stack.</li>
+</ul>
+
+</body>
+</html>

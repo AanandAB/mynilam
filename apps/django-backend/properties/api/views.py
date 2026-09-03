@@ -225,6 +225,10 @@ def serialize_property(property_obj, user=None, request=None):
             if all_rates:
                 starting_price = min(all_rates)
 
+    # Free-form spec fields stored as JSON on the row — read once here so the
+    # response can fall back to sensible defaults for older rows that predate `specs`.
+    specs = property_obj.specs if isinstance(property_obj.specs, dict) else {}
+
     return {
         "id": str(property_obj.id),
         "title": property_obj.title,
@@ -238,15 +242,19 @@ def serialize_property(property_obj, user=None, request=None):
         "bedrooms": property_obj.bedrooms,
         "bathrooms": hostel_config.bathroom_count if hostel_config else property_obj.bathrooms,
         "area_sqft": float(property_obj.area_sqft) if property_obj.area_sqft else None,
-        "landmark": hostel_config.landmark if hostel_config else None,
+        "landmark": property_obj.landmark or (hostel_config.landmark if hostel_config else None),
         "street_address": hostel_config.street_address if hostel_config else None,
+        "security_deposit": float(property_obj.security_deposit) if property_obj.security_deposit else None,
+        "show_contact_details": bool(property_obj.show_contact_details),
+        "contact_name": property_obj.contact_name,
+        "contact_phone": property_obj.contact_phone,
         "city": property_obj.city.name if property_obj.city else None,
         "state": property_obj.state.name if property_obj.state else None,
         "area": property_obj.area.name if property_obj.area else None,
         "zip_code": property_obj.zip_code if hasattr(property_obj, 'zip_code') else None,
         "address": property_obj.address_line_1,
-        "latitude": float(property_obj.latitude) if (property_obj.latitude and can_see_location) else None,
-        "longitude": float(property_obj.longitude) if (property_obj.longitude and can_see_location) else None,
+        "latitude": float(property_obj.latitude) if property_obj.latitude else None,
+        "longitude": float(property_obj.longitude) if property_obj.longitude else None,
         "location_unlocked": can_see_location,
         "images": images,
         "cover_image": cover_image_url or (images[0] if images else None),
@@ -256,23 +264,23 @@ def serialize_property(property_obj, user=None, request=None):
         "is_published": property_obj.verification_status == 'Verified' and property_obj.listing_status == 'Active',
         "user_id": str(owner.id),
         "user": owner_data,
-        "total_rooms": hostel_config.total_rooms if hostel_config else property_obj.bedrooms,
+        "total_rooms": specs.get('total_rooms') or (hostel_config.total_rooms if hostel_config else property_obj.bedrooms),
         "is_furnished": property_obj.furnishing_status == 'Furnished',
-        "furniture_list": [],
-        "num_beds": hostel_config.total_bed_spaces if hostel_config else 1,
-        "is_upstairs": False,
-        "water_source": hostel_config.water_source if hostel_config and hostel_config.water_source else "municipal",
-        "power_backup": "none",
-        "parking": "none",
-        "gated_community": False,
-        "security_features": [],
-        "preferred_tenant": "any",
-        "preferred_gender": ('male' if hostel_config.gender_type == 'boys' else 'female' if hostel_config.gender_type == 'girls' else 'any') if hostel_config else "any",
-        "sharing_occupancy": str(hostel_config.sharings[0]) if hostel_config and isinstance(hostel_config.sharings, list) and len(hostel_config.sharings) > 0 else None,
-        "food_included": hostel_config.mess_food if hostel_config else False,
-        "wifi_available": hostel_config.wifi_enabled if hostel_config else False,
-        "ac_available": hostel_config.ac_available if hostel_config else False,
-        "laundry_available": hostel_config.laundry_enabled if hostel_config else False,
+        "furniture_list": specs.get('furniture_list') or [],
+        "num_beds": specs.get('num_beds') or (hostel_config.total_bed_spaces if hostel_config else 1),
+        "is_upstairs": specs.get('is_upstairs', False),
+        "water_source": specs.get('water_source') or (hostel_config.water_source if hostel_config and hostel_config.water_source else "municipal"),
+        "power_backup": specs.get('power_backup') or "none",
+        "parking": specs.get('parking') or "none",
+        "gated_community": specs.get('gated_community', False),
+        "security_features": specs.get('security_features') or [],
+        "preferred_tenant": specs.get('preferred_tenant') or "any",
+        "preferred_gender": specs.get('preferred_gender') or (('male' if hostel_config.gender_type == 'boys' else 'female' if hostel_config.gender_type == 'girls' else 'any') if hostel_config else "any"),
+        "sharing_occupancy": specs.get('sharing_occupancy') or (str(hostel_config.sharings[0]) if hostel_config and isinstance(hostel_config.sharings, list) and len(hostel_config.sharings) > 0 else None),
+        "food_included": specs.get('food_included', hostel_config.mess_food if hostel_config else False),
+        "wifi_available": specs.get('wifi_available', hostel_config.wifi_enabled if hostel_config else False),
+        "ac_available": specs.get('ac_available', hostel_config.ac_available if hostel_config else False),
+        "laundry_available": specs.get('laundry_available', hostel_config.laundry_enabled if hostel_config else False),
         "created_at": property_obj.created_at.isoformat() if hasattr(property_obj, 'created_at') else "",
         "updated_at": property_obj.updated_at.isoformat() if hasattr(property_obj, 'updated_at') else "",
     }
@@ -284,28 +292,43 @@ class PropertyListView(APIView):
 
     def get(self, request, *args, **kwargs):
         from properties.selectors import get_properties_list
+        from django.db.models import Q
+        from datetime import timedelta
+        from django.utils import timezone
         queryset = get_properties_list()
-        
+
+        # --- Omni search: title / description / landmark / address / city / area ---
+        search = request.query_params.get('search') or request.query_params.get('q')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search)
+                | Q(description__icontains=search)
+                | Q(landmark__icontains=search)
+                | Q(address_line_1__icontains=search)
+                | Q(city__name__icontains=search)
+                | Q(area__name__icontains=search)
+            )
+
         city = request.query_params.get('city')
         if city:
             queryset = queryset.filter(city__name__icontains=city)
-            
+
         state = request.query_params.get('state')
         if state:
             queryset = queryset.filter(state__name__icontains=state)
-            
+
         min_price = request.query_params.get('min_price')
         if min_price:
             queryset = queryset.filter(price__gte=min_price)
-            
+
         max_price = request.query_params.get('max_price')
         if max_price:
             queryset = queryset.filter(price__lte=max_price)
-            
+
         prop_type = request.query_params.get('property_type')
         if prop_type:
             queryset = queryset.filter(property_type__name__iexact=prop_type)
-            
+
         listing_type = request.query_params.get('listing_type')
         if listing_type:
             lt_lower = listing_type.lower()
@@ -316,7 +339,7 @@ class PropertyListView(APIView):
             else:
                 purpose = "Sale"
             queryset = queryset.filter(listing_purpose=purpose)
-            
+
         user_id = request.query_params.get('user_id')
         if user_id:
             if user_id == 'me':
@@ -326,13 +349,87 @@ class PropertyListView(APIView):
                     queryset = queryset.none()
             else:
                 queryset = queryset.filter(owner_id=user_id)
-                
+
         is_published = request.query_params.get('is_published')
         if is_published is not None:
             if is_published.lower() == 'false':
                 queryset = queryset.filter(verification_status='Pending')
             elif is_published.lower() == 'true':
                 queryset = queryset.filter(verification_status='Verified')
+
+        # --- BHK configuration: ?bhk=1,2,3 (multi-select) or ?bedrooms=2 (single) ---
+        bhk = request.query_params.get('bhk') or request.query_params.get('bedrooms')
+        if bhk:
+            bhk_values = [int(x) for x in bhk.split(',') if x.strip().isdigit()]
+            if bhk_values:
+                queryset = queryset.filter(bedrooms__in=bhk_values)
+
+        # --- Bathrooms (multi-select): ?bathrooms=1,2 ---
+        bathrooms = request.query_params.get('bathrooms')
+        if bathrooms:
+            bath_values = [int(x) for x in bathrooms.split(',') if x.strip().isdigit()]
+            if bath_values:
+                queryset = queryset.filter(bathrooms__in=bath_values)
+
+        # --- Furnishing status (multi-select): ?furnishing=Furnished,Semi-Furnished ---
+        furnishing = request.query_params.get('furnishing')
+        if furnishing:
+            furn_values = [v.strip() for v in furnishing.split(',') if v.strip()]
+            if furn_values:
+                queryset = queryset.filter(furnishing_status__in=furn_values)
+
+        # --- Built-up area range: ?min_area=&max_area= ---
+        min_area = request.query_params.get('min_area')
+        if min_area:
+            queryset = queryset.filter(area_sqft__gte=min_area)
+        max_area = request.query_params.get('max_area')
+        if max_area:
+            queryset = queryset.filter(area_sqft__lte=max_area)
+
+        # --- Verified properties only (physically audited): ?verified=true ---
+        verified = request.query_params.get('verified')
+        if verified and verified.lower() in ('true', '1', 'yes'):
+            queryset = queryset.filter(verification_status='Verified')
+
+        # --- Tenant preference (stored in specs JSON): ?tenant_type=family|bachelors ---
+        tenant_type = request.query_params.get('tenant_type')
+        if tenant_type:
+            queryset = queryset.filter(specs__preferred_tenant=tenant_type)
+
+        # --- Preferred gender (specs JSON): ?gender= or ?preferred_gender= ---
+        gender = request.query_params.get('gender') or request.query_params.get('preferred_gender')
+        if gender:
+            queryset = queryset.filter(specs__preferred_gender=gender)
+
+        # --- Freshness: ?added_within=1|7|30 (days) ---
+        added_within = request.query_params.get('added_within')
+        if added_within and added_within.isdigit():
+            cutoff = timezone.now() - timedelta(days=int(added_within))
+            queryset = queryset.filter(created_at__gte=cutoff)
+
+        # --- Availability timeline: ?availability=immediate|15|30|30+ ---
+        availability = request.query_params.get('availability')
+        if availability:
+            today = timezone.now().date()
+            if availability == 'immediate':
+                queryset = queryset.filter(available_from__lte=today)
+            elif availability == '15':
+                queryset = queryset.filter(available_from__lte=today + timedelta(days=15))
+            elif availability == '30':
+                queryset = queryset.filter(available_from__lte=today + timedelta(days=30))
+            elif availability == '30+':
+                queryset = queryset.filter(available_from__gt=today + timedelta(days=30))
+
+        # --- Sorting (default = relevance, i.e. selector's -created_at order) ---
+        sort = request.query_params.get('sort')
+        if sort == 'price_asc':
+            queryset = queryset.order_by('price')
+        elif sort == 'price_desc':
+            queryset = queryset.order_by('-price')
+        elif sort == 'newest':
+            queryset = queryset.order_by('-created_at')
+        elif sort == 'popular':
+            queryset = queryset.order_by('-view_count')
 
         # Pagination
         page = int(request.query_params.get('page', 1))

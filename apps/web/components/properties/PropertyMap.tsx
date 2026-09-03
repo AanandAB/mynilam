@@ -134,8 +134,11 @@ export default function PropertyMap({ properties }: PropertyMapProps) {
         style={{ height: '100%', width: '100%', zIndex: 0 }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={18}
+          keepBuffer={4}
+          bounds={[[-90, -180], [90, 180]]}
         />
         <RecenterMap properties={validProperties} />
         <LocateUser location={userLocation} />

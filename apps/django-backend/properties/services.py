@@ -2,9 +2,27 @@ from properties.models import Property, PropertyVisit
 
 def create_property(*, user, validated_data: dict):
     from django.utils import timezone
-    from properties.models import PropertyType
+    from properties.models import PropertyType, PropertyMedia
     from geo.models import Country, State, District, City
     from django.db import transaction
+    from django.core.files.storage import default_storage
+    from django.conf import settings
+
+    # Uploaded media is pulled out of the payload first: files are written to
+    # storage and linked via PropertyMedia rows, never stored on the Property row.
+    image_files = validated_data.pop('images', None) or []
+    video_files = validated_data.pop('videos', None) or []
+
+    # Free-form listing fields have no dedicated column — they live in Property.specs
+    # (a JSON document). Pop them here so they don't leak into Property.objects.create.
+    SPEC_FIELDS = (
+        'total_rooms', 'furniture_list', 'num_beds', 'is_upstairs',
+        'water_source', 'power_backup', 'parking', 'gated_community',
+        'security_features', 'preferred_tenant', 'preferred_gender',
+        'sharing_occupancy', 'food_included', 'wifi_available',
+        'ac_available', 'laundry_available',
+    )
+    specs = {k: validated_data.pop(k) for k in SPEC_FIELDS if k in validated_data}
 
     city_name = validated_data.get("city", "Kochi").strip()
     state_name = validated_data.get("state", "Kerala").strip()
@@ -59,8 +77,38 @@ def create_property(*, user, validated_data: dict):
             bathrooms=validated_data.get("bathrooms"),
             area_sqft=validated_data.get("area_sqft"),
             furnishing_status="Furnished" if validated_data.get("is_furnished") else "Unfurnished",
-            listing_status="Active"
+            listing_status="Active",
+            # --- PRD §6 extras ---
+            security_deposit=validated_data.get("security_deposit"),
+            latitude=validated_data.get("latitude"),
+            longitude=validated_data.get("longitude"),
+            landmark=validated_data.get("landmark"),
+            show_contact_details=bool(validated_data.get("show_contact_details", False)),
+            contact_name=validated_data.get("contact_name"),
+            contact_phone=validated_data.get("contact_phone"),
+            specs=specs,
         )
+
+        # Save uploaded media to storage (FileSystemStorage -> MEDIA_ROOT) and link
+        # one PropertyMedia row per file. media_url is stored relative to MEDIA_URL so
+        # it stays portable across environments; serialize_property builds the absolute
+        # URL at read time.
+        for idx, file_obj in enumerate(image_files):
+            saved_name = default_storage.save(f"property_media/{file_obj.name}", file_obj)
+            PropertyMedia.objects.create(
+                property=property_obj,
+                media_type='Image',
+                media_url=f"{settings.MEDIA_URL}{saved_name}",
+                sort_order=idx,
+            )
+        for idx, file_obj in enumerate(video_files):
+            saved_name = default_storage.save(f"property_media/{file_obj.name}", file_obj)
+            PropertyMedia.objects.create(
+                property=property_obj,
+                media_type='Video',
+                media_url=f"{settings.MEDIA_URL}{saved_name}",
+                sort_order=idx,
+            )
 
     return property_obj
 def request_visit(*, user, property_id: int, visit_date: str, visit_time: str, notes: str = None):
